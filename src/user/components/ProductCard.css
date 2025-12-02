@@ -1,0 +1,168 @@
+.product-card {
+  display: flex;
+  flex-direction: column;
+  max-width: 500px;
+  background-color: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+/* Ảnh */
+.product-image-container {
+  position: relative;
+  overflow: hidden;
+}
+.product-image {
+  width: 100%;
+  height: 190px;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+  cursor: pointer;
+}
+.product-card:hover .product-image {
+  transform: scale(1.05);
+}
+
+/* Badge */
+.product-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background-color: #ef4444;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+.product-badge.out {
+  left: auto;
+  right: 8px;
+  background-color: #e5e7eb;
+  color: #374151;
+}
+
+/* Nội dung */
+.product-content {
+  padding: 16px;
+}
+.product-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.product-brand {
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #d1d5db;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+.product-rating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #6b7280;
+  font-size: 13px;
+}
+.product-title {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 6px 0 8px;
+  color: #111827;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.product-title:hover {
+  color: #2563eb;
+}
+.product-specs {
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+/* Footer */
+.product-footer {
+  padding: 16px;
+  padding-top: 0;
+  margin-top: auto;
+}
+.product-price {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.product-price strong {
+  font-size: 22px;
+  font-weight: 700;
+  color: #111827;
+}
+.product-price del {
+  font-size: 14px;
+  color: #9ca3af;
+}
+
+/* Button */
+.product-btn {
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+  line-height: 1.5;
+}
+
+.product-btn .icon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.product-btn.default {
+  background-color: #2563eb;
+  color: white;
+}
+.product-btn.default:hover {
+  background-color: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+}
+.product-btn.outline {
+  border: 1px solid #d1d5db;
+  background-color: transparent;
+  color: #374151;
+  transition: all 0.2s ease;
+}
+.product-btn.outline:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+  transform: translateY(-1px);
+}
+.product-btn.disabled {
+  background-color: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+  border: 1px solid #e5e7eb;
+}
+
+/* Ensure consistent icon alignment */
