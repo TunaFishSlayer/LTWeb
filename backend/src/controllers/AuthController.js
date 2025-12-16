@@ -1,6 +1,6 @@
 import UserService from "../services/userService.js";
 import logger from "../utils/logger.js";
-import { signToken } from "../utils/role.js";
+import { signToken } from "../utils/jwt.js";
 
 class AuthController {
 
