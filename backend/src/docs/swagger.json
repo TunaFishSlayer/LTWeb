@@ -1,187 +1,1011 @@
 {
-    "openapi": "3.0.3",
-    "info": {
-        "title": "User Authentication API",
-        "description": "Simple authentication API for school project (Local + Google OAuth)",
-        "version": "1.0.0"
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Laptop Store API",
+    "version": "1.0.0",
+    "description": "Complete REST API for laptop e-commerce store with authentication, product management, and admin features",
+    "contact": {
+      "name": "API Support",
+      "email": "support@laptopstore.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000/api",
+      "description": "Development server"
     },
-    "servers": [
-        {
-            "url": "http://localhost:5000/api",
-            "description": "Local development server"
-        }
-    ],
-    "components": {
-        "securitySchemes": {
-            "BearerAuth": {
-                "type": "http",
-                "scheme": "bearer",
-                "bearerFormat": "JWT"
-            }
-        },
-        "schemas": {
-            "User": {
+    {
+      "url": "https://api.laptopstore.com/api",
+      "description": "Production server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Authentication",
+      "description": "User authentication and authorization endpoints"
+    },
+    {
+      "name": "Laptops",
+      "description": "Laptop product management endpoints"
+    }
+  ],
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Register a new user",
+        "description": "Create a new user account with email and password",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
                 "type": "object",
+                "required": ["email", "password", "name"],
                 "properties": {
-                    "_id": {
-                        "type": "string",
-                        "example": "64b7c3f7c1a2e90012345678"
-                    },
-                    "email": {
-                        "type": "string",
-                        "example": "john.doe@gmail.com"
-                    },
-                    "name": {
-                        "type": "string",
-                        "example": "John Doe"
-                    },
-                    "provider": {
-                        "type": "string",
-                        "example": "local"
-                    },
-                    "role": {
-                        "type": "string",
-                        "example": "user"
-                    },
-                    "createdAt": {
-                        "type": "string",
-                        "format": "date-time"
-                    }
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "user@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 6,
+                    "example": "password123"
+                  },
+                  "name": {
+                    "type": "string",
+                    "example": "John Doe"
+                  }
                 }
-            },
-            "AuthResponse": {
-                "type": "object",
-                "properties": {
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User registered successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "User registered successfully"
+                    },
                     "user": {
-                        "$ref": "#/components/schemas/User"
+                      "$ref": "#/components/schemas/User"
                     },
                     "token": {
-                        "type": "string",
-                        "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
                     }
+                  }
                 }
+              }
             }
+          },
+          "400": {
+            "description": "Bad request - validation error or email already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
         }
+      }
     },
-    "security": [
-        {
+    "/auth/login": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Login user",
+        "description": "Authenticate user with email and password",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "user@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "password123"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Login success"
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    },
+                    "token": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/google": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Login with Google",
+        "description": "Authenticate user using Google OAuth",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "name", "googleId"],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "user@gmail.com"
+                  },
+                  "name": {
+                    "type": "string",
+                    "example": "John Doe"
+                  },
+                  "googleId": {
+                    "type": "string",
+                    "example": "108123456789012345678"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Google login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Google login success"
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    },
+                    "token": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "Get current user profile",
+        "description": "Retrieve authenticated user's profile information",
+        "security": [
+          {
             "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profile retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - invalid or missing token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
         }
-    ],
-    "paths": {
-        "/auth/register": {
-            "post": {
-                "tags": ["Auth"],
-                "summary": "Register a new user",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "required": ["email", "password", "name"],
-                                "properties": {
-                                    "email": {
-                                        "type": "string",
-                                        "example": "john.doe@gmail.com"
-                                    },
-                                    "password": {
-                                        "type": "string",
-                                        "example": "password123"
-                                    },
-                                    "name": {
-                                        "type": "string",
-                                        "example": "John Doe"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "201": {
-                        "description": "User registered successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/AuthResponse"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid input or user already exists"
-                    }
-                }
+      }
+    },
+    "/laptops": {
+      "get": {
+        "tags": ["Laptops"],
+        "summary": "Get all laptops with pagination and filters",
+        "description": "Retrieve laptops with optional search, filtering, sorting, and pagination",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number",
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "minimum": 1
             }
-        },
-        "/auth/login": {
-            "post": {
-                "tags": ["Auth"],
-                "summary": "Login with email and password",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "required": ["email", "password"],
-                                "properties": {
-                                    "email": {
-                                        "type": "string",
-                                        "example": "john.doe@gmail.com"
-                                    },
-                                    "password": {
-                                        "type": "string",
-                                        "example": "password123"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Login successful",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/AuthResponse"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Invalid credentials"
-                    }
-                }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Items per page",
+            "schema": {
+              "type": "integer",
+              "default": 12,
+              "minimum": 1,
+              "maximum": 100
             }
-        },
-        "/auth/me": {
-            "get": {
-                "tags": ["Auth"],
-                "summary": "Get current user profile",
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "User profile",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/User"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized"
-                    }
-                }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Search in name, brand, and specs",
+            "schema": {
+              "type": "string",
+              "example": "gaming laptop"
             }
+          },
+          {
+            "name": "brand",
+            "in": "query",
+            "description": "Filter by brand(s), comma-separated",
+            "schema": {
+              "type": "string",
+              "example": "Dell,HP,Asus"
+            }
+          },
+          {
+            "name": "minPrice",
+            "in": "query",
+            "description": "Minimum price filter",
+            "schema": {
+              "type": "number",
+              "example": 500
+            }
+          },
+          {
+            "name": "maxPrice",
+            "in": "query",
+            "description": "Maximum price filter",
+            "schema": {
+              "type": "number",
+              "example": 2000
+            }
+          },
+          {
+            "name": "featured",
+            "in": "query",
+            "description": "Filter featured laptops only",
+            "schema": {
+              "type": "boolean",
+              "example": true
+            }
+          },
+          {
+            "name": "inStock",
+            "in": "query",
+            "description": "Filter in-stock items only",
+            "schema": {
+              "type": "boolean",
+              "example": true
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Sort order",
+            "schema": {
+              "type": "string",
+              "enum": ["price-asc", "price-desc", "rating", "name-asc", "name-desc", "-createdAt"],
+              "default": "-createdAt"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Laptops retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Laptop"
+                      }
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - invalid parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
         }
+      },
+      "post": {
+        "tags": ["Laptops"],
+        "summary": "Create a new laptop (Admin only)",
+        "description": "Add a new laptop to the store",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LaptopInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Laptop created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Laptop created successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Laptop"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/laptops/search": {
+      "get": {
+        "tags": ["Laptops"],
+        "summary": "Search laptops using text index",
+        "description": "Full-text search across laptop name, brand, and specs",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "description": "Search query",
+            "schema": {
+              "type": "string",
+              "example": "gaming RTX"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 12
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Laptop"
+                      }
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/laptops/featured": {
+      "get": {
+        "tags": ["Laptops"],
+        "summary": "Get featured laptops",
+        "description": "Retrieve featured laptops sorted by rating",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of featured laptops to return",
+            "schema": {
+              "type": "integer",
+              "default": 6
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Featured laptops retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Laptop"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/laptops/brands": {
+      "get": {
+        "tags": ["Laptops"],
+        "summary": "Get all available brands",
+        "description": "Retrieve list of all laptop brands in the store",
+        "responses": {
+          "200": {
+            "description": "Brands list retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "example": ["Asus", "Dell", "HP", "Lenovo"]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/laptops/{id}": {
+      "get": {
+        "tags": ["Laptops"],
+        "summary": "Get laptop by ID",
+        "description": "Retrieve detailed information about a specific laptop",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Laptop ID",
+            "schema": {
+              "type": "string",
+              "example": "507f1f77bcf86cd799439011"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Laptop found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Laptop"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Laptop not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Laptops"],
+        "summary": "Update laptop (Admin only)",
+        "description": "Update laptop information",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LaptopInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Laptop updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Laptop"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Laptop not found"
+          },
+          "403": {
+            "description": "Forbidden - Admin access required"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Laptops"],
+        "summary": "Delete laptop (Admin only)",
+        "description": "Remove a laptop from the store",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Laptop deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Laptop deleted successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Laptop not found"
+          },
+          "403": {
+            "description": "Forbidden - Admin access required"
+          }
+        }
+      }
     }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "user@example.com"
+          },
+          "name": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "provider": {
+            "type": "string",
+            "enum": ["local", "google"],
+            "example": "local"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["user", "admin"],
+            "example": "user"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Laptop": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "name": {
+            "type": "string",
+            "example": "Dell XPS 15"
+          },
+          "brand": {
+            "type": "string",
+            "example": "Dell"
+          },
+          "price": {
+            "type": "number",
+            "example": 1299
+          },
+          "originalPrice": {
+            "type": "number",
+            "example": 1599
+          },
+          "image": {
+            "type": "string",
+            "example": "https://example.com/laptop.jpg"
+          },
+          "specs": {
+            "type": "object",
+            "properties": {
+              "processor": {
+                "type": "string",
+                "example": "Intel i7-12700H"
+              },
+              "ram": {
+                "type": "string",
+                "example": "16GB DDR5"
+              },
+              "storage": {
+                "type": "string",
+                "example": "512GB SSD"
+              },
+              "graphics": {
+                "type": "string",
+                "example": "NVIDIA RTX 3050"
+              },
+              "display": {
+                "type": "string",
+                "example": "15.6 FHD"
+              }
+            }
+          },
+          "rating": {
+            "type": "number",
+            "example": 4.5
+          },
+          "reviews": {
+            "type": "number",
+            "example": 128
+          },
+          "stock": {
+            "type": "number",
+            "example": 10
+          },
+          "inStock": {
+            "type": "boolean",
+            "example": true
+          },
+          "featured": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "LaptopInput": {
+        "type": "object",
+        "required": ["name", "brand", "price", "originalPrice", "image", "specs", "stock"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Dell XPS 15"
+          },
+          "brand": {
+            "type": "string",
+            "example": "Dell"
+          },
+          "price": {
+            "type": "number",
+            "minimum": 0,
+            "example": 1299
+          },
+          "originalPrice": {
+            "type": "number",
+            "minimum": 0,
+            "example": 1599
+          },
+          "image": {
+            "type": "string",
+            "example": "https://example.com/laptop.jpg"
+          },
+          "specs": {
+            "type": "object",
+            "required": ["processor", "ram", "storage", "graphics", "display"],
+            "properties": {
+              "processor": {
+                "type": "string",
+                "example": "Intel i7-12700H"
+              },
+              "ram": {
+                "type": "string",
+                "example": "16GB DDR5"
+              },
+              "storage": {
+                "type": "string",
+                "example": "512GB SSD"
+              },
+              "graphics": {
+                "type": "string",
+                "example": "NVIDIA RTX 3050"
+              },
+              "display": {
+                "type": "string",
+                "example": "15.6 FHD"
+              }
+            }
+          },
+          "rating": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 5,
+            "example": 4.5
+          },
+          "reviews": {
+            "type": "number",
+            "example": 128
+          },
+          "stock": {
+            "type": "number",
+            "minimum": 0,
+            "example": 10
+          },
+          "featured": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "Pagination": {
+        "type": "object",
+        "properties": {
+          "currentPage": {
+            "type": "integer",
+            "example": 1
+          },
+          "totalPages": {
+            "type": "integer",
+            "example": 5
+          },
+          "totalItems": {
+            "type": "integer",
+            "example": 52
+          },
+          "itemsPerPage": {
+            "type": "integer",
+            "example": 12
+          },
+          "hasNextPage": {
+            "type": "boolean",
+            "example": true
+          },
+          "hasPrevPage": {
+            "type": "boolean",
+            "example": false
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Error message"
+          }
+        }
+      }
+    }
+  }
 }
