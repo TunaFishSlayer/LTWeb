@@ -6,9 +6,7 @@ const logger = winston.createLogger({
   format: winston.format.combine(
     winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
     winston.format.errors({ stack: true }),
-    winston.format.printf(({ level, message, timestamp, stack }) => {
-      return `${timestamp} [${level.toUpperCase()}]: ${stack || message}`;
-    })
+    winston.format.json()
   ),
   transports: [
     new winston.transports.File({
@@ -21,7 +19,13 @@ const logger = winston.createLogger({
 if (process.env.NODE_ENV !== "production") {
   logger.add(
     new winston.transports.Console({
-      format: winston.format.simple()
+      format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+        winston.format.printf(({ level, message, timestamp }) => {
+          return `${timestamp} [${level}]: ${message}`;
+        })
+      )
     })
   );
 }
