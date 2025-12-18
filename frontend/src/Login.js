@@ -1,14 +1,51 @@
 import { useState } from "react";
 import { LuUser, LuLock, LuEye, LuEyeClosed } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
-import { useAuthStore } from "../lib/auth";
-import "../styles/Login.css";
+import { useAuthStore } from "./lib/auth";
+import "./Login.css";
+
+
+const API_BASE = "/api";
+
+const apiLogin = async (email, password) => {
+  const response = await fetch(`${API_BASE}/auth/login`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email, password })
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Login failed');
+  }
+  
+  return response.json();
+};
+
+const apiRegister = async (email, password, name) => {
+  const response = await fetch(`${API_BASE}/auth/register`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email, password, name })
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Registration failed');
+  }
+  
+  return response.json();
+};
 
 export default function Login() {
   const [loginShowPassword, setLoginShowPassword] = useState(false);
   const [signupShowPassword, setSignupShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [loginForm, setLoginForm] = useState({ email: "", password: "" });
+  const [loginForm, setLoginForm] = useState({ email: "", password: "", role: "user" });
   const [signupForm, setSignupForm] = useState({
     firstName: "",
     lastName: "",
@@ -20,7 +57,8 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState("login");
   const navigate = useNavigate();
-  const { login } = useAuthStore();
+  const { login: setAuthUser } = useAuthStore();
+
 
   const validateEmail = (email) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -45,32 +83,85 @@ export default function Login() {
     try {
       setLoading(true);
       
-      // Sử dụng mock authentication
-      const success = login(loginForm.email, loginForm.password);
+      // Call backend API
+      const result = await apiLogin(loginForm.email, loginForm.password);
       
-      if (!success) {
-        throw new Error('Đăng nhập thất bại. Vui lòng kiểm tra lại email và mật khẩu.');
+      // Update auth store with backend response
+      setAuthUser(result.user);
+      
+      // Store token in localStorage
+      localStorage.setItem('token', result.token);
+      
+      // Navigate based on user role
+      if (result.user.role === 'admin') {
+        navigate("/admin");
+      } else {
+        navigate("/home");
       }
       
-      // Chuyển hướng về trang chủ sau khi đăng nhập thành công
-      navigate("/");
-      
     } catch (err) {
-      setError(err.message || 'Có lỗi xảy ra khi đăng nhập');
+      // Check if user doesn't exist - suggest registration
+      if (err.message === "Invalid email or password") {
+        setError("Email hoặc mật khẩu không đúng. Nếu chưa có tài khoản, hãy đăng ký.");
+      } else {
+        setError(err.message || 'Có lỗi xảy ra khi đăng nhập');
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSignup = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
+    setError("");
+    
+    // Validation
     if (signupForm.password !== signupForm.confirmPassword) {
-      alert("Passwords do not match");
+      setError("Passwords do not match");
       return;
     }
-    if (signupForm.firstName && signupForm.lastName && signupForm.email && signupForm.password) {
-      alert(`Tạo tài khoản cho: ${signupForm.email}`);
-      navigate("/");
+    
+    if (!signupForm.firstName || !signupForm.lastName || !signupForm.email || !signupForm.password) {
+      setError("Vui lòng điền đầy đủ thông tin");
+      return;
+    }
+    
+    if (!validateEmail(signupForm.email)) {
+      setError("Email không hợp lệ");
+      return;
+    }
+    
+    if (signupForm.password.length < 6) {
+      setError("Mật khẩu phải có ít nhất 6 ký tự");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      const name = `${signupForm.firstName} ${signupForm.lastName}`;
+      const result = await apiRegister(signupForm.email, signupForm.password, name);
+      
+      // Update auth store with new user
+      setAuthUser(result.user);
+      
+      // Store token
+      localStorage.setItem('token', result.token);
+      
+      // Navigate to home
+      navigate("/home");
+      
+    } catch (err) {
+      // Handle specific error messages
+      if (err.message === "Email already in use") {
+        setError("Email đã được sử dụng. Vui lòng chọn email khác hoặc đăng nhập.");
+      } else if (err.message === "Password must be at least 6 characters") {
+        setError("Mật khẩu phải có ít nhất 6 ký tự");
+      } else {
+        setError(err.message || 'Có lỗi xảy ra khi tạo tài khoản');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -102,7 +193,7 @@ export default function Login() {
               <LuUser className="icon-login" />
               <input
                 type="email"
-                placeholder="john@example.com"
+                placeholder="demo@laptophub.com"
                 value={loginForm.email}
                 onChange={(e) =>
                   setLoginForm({ ...loginForm, email: e.target.value })
@@ -116,7 +207,7 @@ export default function Login() {
               <LuLock className="icon-login" />
               <input
                 type={loginShowPassword ? "text" : "password"}
-                placeholder="Enter your password"
+                placeholder=" ******** "
                 value={loginForm.password}
                 onChange={(e) =>
                   setLoginForm({ ...loginForm, password: e.target.value })
@@ -237,7 +328,8 @@ export default function Login() {
 
         <div className="demo-info">
           <p>Demo credentials:</p>
-          <p>Email: demo@laptophub.com | Password: demo123</p>
+          <p><strong>User:</strong> Email: demo@laptophub.com | Password: demo123</p>
+          <p><strong>Admin:</strong> Email: admin@laptophub.com | Password: admin123</p>
         </div>
       </div>
     </div>

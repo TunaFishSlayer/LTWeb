@@ -1,110 +1,162 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { useAuthStore } from '../lib/auth';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../../lib/auth';
 import { toast } from 'sonner';
 import '../styles/TrackOrder.css';
+
+const API_BASE = '/api';
 
 export default function TrackOrder() {
   const { orderId } = useParams();
   const { user } = useAuthStore();
+  const navigate = useNavigate();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [trackingInfo, setTrackingInfo] = useState({
-    status: 'processing',
-    estimatedDelivery: '2023-12-15',
+    status: 'pending',
+    estimatedDelivery: '',
     carrier: 'Taplop Shipping',
-    trackingNumber: `TP${Math.floor(10000000 + Math.random() * 90000000)}`,
-    history: [
-      {
-        status: 'order_placed',
-        date: '2023-11-10T10:30:00',
-        location: 'Warehouse',
-        description: 'Order received and being processed'
-      }
-    ]
+    trackingNumber: '',
+    history: []
   });
 
   useEffect(() => {
     const fetchOrder = async () => {
       try {
-        // Simulate API call to get order details
-        const savedOrders = JSON.parse(localStorage.getItem(`user_${user?.id}_orders`) || '[]');
-        const foundOrder = savedOrders.find(o => o.id === orderId);
-        
-        if (foundOrder) {
-          setOrder(foundOrder);
-          
-          // Simulate tracking updates based on order status
-          const statusUpdates = {
-            processing: [
-              {
-                status: 'processing',
-                date: new Date().toISOString(),
-                location: 'Processing Center',
-                description: 'Your order is being processed'
-              }
-            ],
-            shipped: [
-              {
-                status: 'shipped',
-                date: new Date(Date.now() + 86400000).toISOString(),
-                location: 'Distribution Center',
-                description: 'Your order has been shipped'
-              },
-              {
-                status: 'processing',
-                date: new Date().toISOString(),
-                location: 'Processing Center',
-                description: 'Your order is being processed'
-              }
-            ],
-            delivered: [
-              {
-                status: 'delivered',
-                date: new Date(Date.now() + 259200000).toISOString(),
-                location: 'Your Address',
-                description: 'Your order has been delivered'
-              },
-              {
-                status: 'out_for_delivery',
-                date: new Date(Date.now() + 172800000).toISOString(),
-                location: 'Local Facility',
-                description: 'Out for delivery'
-              },
-              {
-                status: 'shipped',
-                date: new Date(Date.now() + 86400000).toISOString(),
-                location: 'Distribution Center',
-                description: 'Your order has been shipped'
-              },
-              {
-                status: 'processing',
-                date: new Date().toISOString(),
-                location: 'Processing Center',
-                description: 'Your order is being processed'
-              }
-            ]
-          };
-
-          const updates = statusUpdates[foundOrder.status?.toLowerCase()] || statusUpdates.processing;
-          setTrackingInfo(prev => ({
-            ...prev,
-            status: foundOrder.status?.toLowerCase() || 'processing',
-            history: updates
-          }));
-        } else {
-          toast.error('Order not found');
+        const token = localStorage.getItem('token');
+        if (!token) {
+          navigate('/login');
+          return;
         }
+
+        // Fetch order from backend API
+        const response = await fetch(`${API_BASE}/orders/${orderId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          throw new Error(data.message || 'Order not found');
+        }
+
+        const fetchedOrder = data.data;
+        
+        // Transform order to match frontend format
+        const transformedOrder = {
+          id: fetchedOrder._id || fetchedOrder.id,
+          date: fetchedOrder.createdAt,
+          status: fetchedOrder.status || 'pending',
+          items: fetchedOrder.items?.map(item => ({
+            id: item.laptop?._id || item.laptop?.id,
+            name: item.laptop?.name,
+            image: item.laptop?.image,
+            price: item.price || item.laptop?.price,
+            quantity: item.quantity
+          })) || [],
+          subtotal: fetchedOrder.totalPrice,
+          total: fetchedOrder.totalPrice,
+          shippingAddress: fetchedOrder.shippingAddress
+        };
+
+        setOrder(transformedOrder);
+        
+        // Generate tracking info based on order status
+        const status = fetchedOrder.status?.toLowerCase() || 'pending';
+        const orderDate = new Date(fetchedOrder.createdAt || new Date());
+        const estimatedDelivery = new Date(orderDate.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days from order
+        
+        const statusUpdates = {
+          pending: [
+            {
+              status: 'pending',
+              date: orderDate.toISOString(),
+              location: 'Processing Center',
+              description: 'Order received and being processed'
+            }
+          ],
+          paid: [
+            {
+              status: 'paid',
+              date: orderDate.toISOString(),
+              location: 'Processing Center',
+              description: 'Payment confirmed, preparing your order'
+            },
+            {
+              status: 'pending',
+              date: orderDate.toISOString(),
+              location: 'Warehouse',
+              description: 'Order received and being processed'
+            }
+          ],
+          shipped: [
+            {
+              status: 'shipped',
+              date: new Date(orderDate.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+              location: 'Distribution Center',
+              description: 'Your order has been shipped'
+            },
+            {
+              status: 'paid',
+              date: orderDate.toISOString(),
+              location: 'Processing Center',
+              description: 'Payment confirmed, preparing your order'
+            }
+          ],
+          completed: [
+            {
+              status: 'completed',
+              date: estimatedDelivery.toISOString(),
+              location: 'Your Address',
+              description: 'Your order has been delivered'
+            },
+            {
+              status: 'shipped',
+              date: new Date(orderDate.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+              location: 'Distribution Center',
+              description: 'Your order has been shipped'
+            },
+            {
+              status: 'paid',
+              date: orderDate.toISOString(),
+              location: 'Processing Center',
+              description: 'Payment confirmed, preparing your order'
+            }
+          ],
+          cancelled: [
+            {
+              status: 'cancelled',
+              date: orderDate.toISOString(),
+              location: 'Processing Center',
+              description: 'Order has been cancelled'
+            }
+          ]
+        };
+
+        const updates = statusUpdates[status] || statusUpdates.pending;
+        setTrackingInfo({
+          status: status,
+          estimatedDelivery: estimatedDelivery.toISOString(),
+          carrier: 'Taplop Shipping',
+          trackingNumber: `TP${(fetchedOrder._id || fetchedOrder.id).toString().slice(-8).toUpperCase()}`,
+          history: updates
+        });
       } catch (error) {
         console.error('Error fetching order:', error);
-        toast.error('Failed to load order details');
+        toast.error(error.message || 'Failed to load order details');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchOrder();
-  }, [orderId, user?.id]);
+    if (user && orderId) {
+      fetchOrder();
+    } else if (!user) {
+      navigate('/login');
+    }
+  }, [orderId, user, navigate]);
 
   const getStatusLabel = (status) => {
     const labels = {
@@ -141,7 +193,7 @@ export default function TrackOrder() {
     <div className="track-order-container">
       <div className="tracking-header">
         <h1>Track Your Order</h1>
-        <p className="order-number">Order #: {order.id}</p>
+        <p className="order-number">Order #: {order.id || order._id}</p>
       </div>
 
       <div className="tracking-summary">

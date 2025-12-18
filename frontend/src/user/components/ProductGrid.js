@@ -1,12 +1,48 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ProductCard from "./ProductCard";
 import "./ProductGrid.css";
-import { laptops, brands } from "../lib/laptop";
 
 export default function ProductGrid() {
+  const [laptops, setLaptops] = useState([]);
+  const [brands, setBrands] = useState(["All"]);
   const [selectedBrand, setSelectedBrand] = useState("All");
   const [priceRange, setPriceRange] = useState([0, 3000]);
   const [sortBy, setSortBy] = useState("name");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  // Fetch laptops from backend API
+  useEffect(() => {
+    const fetchLaptops = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        // Use CRA proxy: frontend/package.json has "proxy": "http://localhost:5000"
+        const res = await fetch("/api/laptops");
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+          throw new Error(data.message || "Failed to load laptops");
+        }
+
+        const laptopList = data.data || [];
+        setLaptops(laptopList);
+
+        // Build brand list from API data
+        const uniqueBrands = Array.from(
+          new Set(laptopList.map((item) => item.brand).filter(Boolean))
+        );
+        setBrands(["All", ...uniqueBrands]);
+      } catch (err) {
+        setError(err.message || "Failed to load laptops");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLaptops();
+  }, []);
 
   const filteredLaptops = laptops
     .filter((laptop) => {
@@ -98,6 +134,18 @@ export default function ProductGrid() {
             <option value="rating">Highest Rated</option>
           </select>
         </div>
+
+        {loading && (
+          <div className="loading-state">
+            <p>Loading laptops...</p>
+          </div>
+        )}
+
+        {error && !loading && (
+          <div className="error-state">
+            <p>{error}</p>
+          </div>
+        )}
 
         <div className="products-grid">
           {filteredLaptops.map((laptop) => (

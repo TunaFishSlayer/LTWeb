@@ -1,21 +1,83 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Star, ShoppingCart, Lock } from "lucide-react";
-import { useCartStore } from "../lib/cart";
-import { useAuthStore } from "../lib/auth";
-import "./ProductCard.css"; // import CSS thuần
+import { Star, ShoppingCart, Lock, Percent } from "lucide-react";
+import { useCartStore } from "../../lib/cart";
+import { useAuthStore } from "../../lib/auth";
+import "./ProductCard.css";
+
+const API_BASE = '/api';
 
 export default function ProductCard({ laptop }) {
   const { addItem } = useCartStore();
   const { isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
+  const [discount, setDiscount] = useState(null);
+  const [finalPrice, setFinalPrice] = useState(laptop.price);
+
+  // Fetch active discounts and calculate final price
+  useEffect(() => {
+    const fetchDiscount = async () => {
+      try {
+        // Fetch active discounts from public endpoint
+        const response = await fetch(`${API_BASE}/discounts/active`);
+        const data = await response.json();
+        
+        if (data.success && data.data) {
+          const laptopId = laptop._id || laptop.id;
+          
+          // Find applicable discount for this laptop
+          const applicableDiscount = data.data.find(d => {
+            if (d.applicableTo === 'all') {
+              return true;
+            } else if (d.applicableTo === 'specific') {
+              const productIds = d.productIds?.map(p => p._id || p.id || p) || [];
+              return productIds.includes(laptopId);
+            }
+            return false;
+          });
+          
+          if (applicableDiscount) {
+            setDiscount(applicableDiscount);
+            
+            // Calculate final price after discount
+            let discountedPrice = laptop.price;
+            if (applicableDiscount.type === 'percentage') {
+              discountedPrice = laptop.price * (1 - applicableDiscount.value / 100);
+              if (applicableDiscount.maxDiscount > 0) {
+                const maxDiscountAmount = laptop.price * (applicableDiscount.maxDiscount / 100);
+                const discountAmount = laptop.price - discountedPrice;
+                if (discountAmount > maxDiscountAmount) {
+                  discountedPrice = laptop.price - maxDiscountAmount;
+                }
+              }
+            } else if (applicableDiscount.type === 'fixed') {
+              discountedPrice = Math.max(0, laptop.price - applicableDiscount.value);
+            }
+            
+            setFinalPrice(Math.round(discountedPrice * 100) / 100);
+          }
+        }
+      } catch (error) {
+        // Silently fail - discounts are optional
+        console.error('Error fetching discounts:', error);
+      }
+    };
+    
+    fetchDiscount();
+  }, [laptop]);
 
   const handleAddToCart = () => {
     if (!isAuthenticated) {
       navigate("/login");
       return;
     }
-    addItem(laptop);
+    // Ensure laptop has both _id and id for compatibility
+    const laptopWithId = {
+      ...laptop,
+      id: laptop._id || laptop.id,
+      _id: laptop._id || laptop.id
+    };
+    addItem(laptopWithId);
   };
 
   return (
@@ -26,11 +88,15 @@ export default function ProductCard({ laptop }) {
           src={laptop.image}
           alt={laptop.name}
           className="product-image"
-          onClick={() => navigate(`/products/${laptop.id}`)}
+          onClick={() => navigate(`/products/${laptop._id || laptop.id}`)}
         />
-        {laptop.originalPrice && (
-          <div className="product-badge">
-            Save ${laptop.originalPrice - laptop.price}
+        {discount && (
+          <div className="product-badge discount">
+            {discount.type === 'percentage' ? (
+              <>-{discount.value}%</>
+            ) : (
+              <>-${discount.value}</>
+            )}
           </div>
         )}
         {!laptop.inStock && (
@@ -52,7 +118,7 @@ export default function ProductCard({ laptop }) {
 
         <h3
           className="product-title"
-          onClick={() => navigate(`/products/${laptop.id}`)}
+          onClick={() => navigate(`/products/${laptop._id || laptop.id}`)}
         >
           {laptop.name}
         </h3>
@@ -69,10 +135,7 @@ export default function ProductCard({ laptop }) {
       {/* Footer */}
       <div className="product-footer">
         <div className="product-price">
-          <strong>${laptop.price.toLocaleString()}</strong>
-          {laptop.originalPrice && (
-            <del>${laptop.originalPrice.toLocaleString()}</del>
-          )}
+          <strong>${finalPrice.toLocaleString()}</strong>
         </div>
 
         <button

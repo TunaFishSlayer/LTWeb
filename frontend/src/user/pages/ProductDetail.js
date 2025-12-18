@@ -1,45 +1,113 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Star, ShoppingCart, Lock, Plus, Minus } from "lucide-react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import CartSidebar from "../components/CartSidebar";
-import { useCartStore } from "../lib/cart";
-import { useAuthStore } from "../lib/auth";
-import { laptops } from "../lib/laptop";
+import { useCartStore } from '../../lib/cart';
+import { useAuthStore } from '../../lib/auth';
 import "../styles/ProductDetail.css";
+
+const API_BASE = '/api';
 
 export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addItem } = useCartStore();
   const { isAuthenticated } = useAuthStore();
-  const [quantity, setQuantity] = React.useState(1);
+  const [quantity, setQuantity] = useState(1);
+  const [laptop, setLaptop] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [discount, setDiscount] = useState(null);
+  const [finalPrice, setFinalPrice] = useState(0);
 
-  const laptop = laptops.find((l) => l.id === id);
+  // Fetch single laptop and discount information
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError("");
 
-  if (!laptop) {
-    return (
-      <div className="product-detail-container">
-        <Header />
-        <CartSidebar />
-        <div className="not-found">
-          <h2>Product Not Found</h2>
-          <p>The product you're looking for doesn't exist.</p>
-          <button onClick={() => navigate("/products")}>Back to Products</button>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
+        // Fetch laptop details
+        const [laptopRes, discountRes] = await Promise.all([
+          fetch(`${API_BASE}/laptops/${id}`),
+          fetch(`${API_BASE}/discounts/active`)
+        ]);
+
+        const laptopData = await laptopRes.json();
+        const discountData = await discountRes.json();
+
+        if (!laptopRes.ok || !laptopData.success) {
+          throw new Error(laptopData.message || "Product not found");
+        }
+
+        const laptop = laptopData.data;
+        setLaptop(laptop);
+
+        // Find applicable discount
+        if (discountData.success && discountData.data) {
+          const applicableDiscount = discountData.data.find(d => {
+            if (d.applicableTo === 'all') {
+              return true;
+            } else if (d.applicableTo === 'specific') {
+              const productIds = d.productIds?.map(p => p._id || p.id || p) || [];
+              return productIds.includes(laptop._id || laptop.id);
+            }
+            return false;
+          });
+
+          if (applicableDiscount) {
+            setDiscount(applicableDiscount);
+            
+            // Calculate final price after discount
+            let discountedPrice = laptop.price;
+            if (applicableDiscount.type === 'percentage') {
+              discountedPrice = laptop.price * (1 - applicableDiscount.value / 100);
+              if (applicableDiscount.maxDiscount > 0) {
+                const maxDiscountAmount = laptop.price * (applicableDiscount.maxDiscount / 100);
+                const discountAmount = laptop.price - discountedPrice;
+                if (discountAmount > maxDiscountAmount) {
+                  discountedPrice = laptop.price - maxDiscountAmount;
+                }
+              }
+            } else if (applicableDiscount.type === 'fixed') {
+              discountedPrice = Math.max(0, laptop.price - applicableDiscount.value);
+            }
+            
+            setFinalPrice(Math.round(discountedPrice * 100) / 100);
+          } else {
+            setFinalPrice(laptop.price);
+          }
+        } else {
+          setFinalPrice(laptop.price);
+        }
+      } catch (err) {
+        setError(err.message || "Failed to load product");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchData();
+    }
+  }, [id]);
 
   const handleAddToCart = () => {
+    if (!laptop) return;
     if (!isAuthenticated) {
       navigate("/login");
       return;
     }
+    // Ensure laptop has both _id and id for compatibility
+    const laptopWithId = {
+      ...laptop,
+      id: laptop._id || laptop.id,
+      _id: laptop._id || laptop.id
+    };
     for (let i = 0; i < quantity; i++) {
-      addItem(laptop);
+      addItem(laptopWithId);
     }
   };
 
@@ -57,6 +125,21 @@ export default function ProductDetail() {
           Back to Products
         </button>
 
+        {loading && (
+          <div className="loading-state">
+            <p>Loading product...</p>
+          </div>
+        )}
+
+        {error && !loading && (
+          <div className="not-found">
+            <h2>Product Not Found</h2>
+            <p>{error}</p>
+            <button onClick={() => navigate("/products")}>Back to Products</button>
+          </div>
+        )}
+
+        {!loading && !error && laptop && (
         <div className="product-detail-grid">
           {/* Product Image */}
           <div className="product-image-section">
@@ -79,14 +162,20 @@ export default function ProductDetail() {
             <h1 className="product-title">{laptop.name}</h1>
 
             <div className="product-price">
-              <span className="current-price">${laptop.price.toLocaleString()}</span>
-              {laptop.originalPrice && (
-                <span className="original-price">${laptop.originalPrice.toLocaleString()}</span>
-              )}
-              {laptop.originalPrice && (
-                <span className="savings">
-                  Save ${laptop.originalPrice - laptop.price}
-                </span>
+              {discount ? (
+                <>
+                  <span className="current-price">${finalPrice.toLocaleString()}</span>
+                  <span className="original-price">${laptop.price.toLocaleString()}</span>
+                  <span className="savings">
+                    {discount.type === 'percentage' ? (
+                      `-${discount.value}%`
+                    ) : (
+                      `-$${discount.value}`
+                    )}
+                  </span>
+                </>
+              ) : (
+                <span className="current-price">${laptop.price.toLocaleString()}</span>
               )}
             </div>
 
@@ -155,13 +244,14 @@ export default function ProductDetail() {
             </div>
           </div>
         </div>
+        )}
 
         {/* Compare Section */}
         <div className="compare-section">
           <h2>Compare with other products</h2>
           <button 
             className="compare-btn"
-            onClick={() => navigate(`/compare?product1=${laptop.id}`)}
+            onClick={() => laptop && navigate(`/compare?product1=${laptop._id || laptop.id}`)}
           >
             Choose Product to Compare
           </button>

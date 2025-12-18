@@ -1,6 +1,6 @@
 import React from 'react';
-import { useCartStore } from '../lib/cart';
-import { useAuthStore } from '../lib/auth';
+import { useCartStore } from '../../lib/cart';
+import { useAuthStore } from '../../lib/auth';
 import { useNavigate } from 'react-router-dom';
 import './CartSidebar.css';
 
@@ -23,55 +23,26 @@ export default function CartSidebar() {
     }
   }, [isOpen, initCart]);
 
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
   const totalPrice = getTotalPrice();
 
-  const handleCheckout = async () => {
+  // Clear cart when user logs out
+  React.useEffect(() => {
+    if (!isAuthenticated && items.length > 0) {
+      clearCart();
+    }
+  }, [isAuthenticated, items.length, clearCart]);
+
+  const handleCheckout = () => {
     if (!isAuthenticated) {
       navigate('/login');
       return;
     }
 
-    try {
-      // Prepare order data
-      const order = {
-        id: `ORDER-${Date.now()}`,
-        date: new Date().toISOString(),
-        items: items.map(item => ({
-          id: item.laptop.id,
-          name: item.laptop.name,
-          price: item.laptop.price,
-          quantity: item.quantity,
-          image: item.laptop.image
-        })),
-        status: 'Processing',
-        subtotal: totalPrice,
-        shipping: 0, // You can calculate shipping if needed
-        tax: 0, // You can calculate tax if needed
-        total: totalPrice,
-        paymentMethod: 'Credit Card' // Default, can be updated in checkout
-      };
-
-      // Save to localStorage
-      const savedOrders = JSON.parse(localStorage.getItem(`user_${user?.id}_orders`) || '[]');
-      savedOrders.unshift(order);
-      localStorage.setItem(`user_${user?.id}_orders`, JSON.stringify(savedOrders));
-
-      // Navigate to checkout with the order ID
-      toggleCart();
-      navigate('/checkout', { 
-        state: { 
-          orderId: order.id,
-          fromCart: true
-        } 
-      });
-    } catch (error) {
-      console.error('Error saving order:', error);
-      // Still navigate to checkout even if saving to history fails
-      toggleCart();
-      navigate('/checkout');
-    }
+    // Simply navigate to checkout - order will be created there
+    toggleCart();
+    navigate('/checkout');
   };
 
   if (!isOpen) return null; // nếu giỏ hàng chưa mở thì không hiển thị
@@ -95,43 +66,46 @@ export default function CartSidebar() {
               </button>
             </div>
           ) : (
-            items.map((item) => (
-              <div key={item.laptop.id} className="cart-item">
-                <img
-                  src={item.laptop.image}
-                  alt={item.laptop.name}
-                  className="item-img"
-                />
-                <div className="item-info">
-                  <h4>{item.laptop.name}</h4>
-                  <p>${item.laptop.price.toLocaleString()}</p>
-                  <div className="item-controls">
-                    <div className="quantity-controls">
+            items.map((item) => {
+              const laptopId = item.laptop._id || item.laptop.id;
+              return (
+                <div key={laptopId} className="cart-item">
+                  <img
+                    src={item.laptop.image}
+                    alt={item.laptop.name}
+                    className="item-img"
+                  />
+                  <div className="item-info">
+                    <h4>{item.laptop.name}</h4>
+                    <p>${item.laptop.price.toLocaleString()}</p>
+                    <div className="item-controls">
+                      <div className="quantity-controls">
+                        <button
+                          onClick={() =>
+                            updateQuantity(laptopId, item.quantity - 1)
+                          }
+                        >
+                          -
+                        </button>
+                        <span>{item.quantity}</span>
+                        <button
+                          onClick={() =>
+                            updateQuantity(laptopId, item.quantity + 1)
+                          }
+                        >
+                          +
+                        </button>
+                      </div>
                       <button
-                        onClick={() =>
-                          updateQuantity(item.laptop.id, item.quantity - 1)
-                        }
+                        className="remove-btn"
+                        onClick={() => removeItem(laptopId)}
                       >
-                        -
-                      </button>
-                      <span>{item.quantity}</span>
-                      <button
-                        onClick={() =>
-                          updateQuantity(item.laptop.id, item.quantity + 1)
-                        }
-                      >
-                        +
                       </button>
                     </div>
-                    <button
-                      className="remove-btn"
-                      onClick={() => removeItem(item.laptop.id)}
-                    >
-                    </button>
                   </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
 

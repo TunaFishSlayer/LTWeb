@@ -5,48 +5,80 @@ import { FaStar } from "react-icons/fa";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import CartSidebar from "../components/CartSidebar";
-import { laptops } from "../lib/laptop";
 import "../styles/ProductComparison.css";
 
 export default function ProductComparison() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [laptops, setLaptops] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [product1, setProduct1] = useState(null);
   const [product2, setProduct2] = useState(null);
   const [showProductSelector, setShowProductSelector] = useState(false);
   const [selectorTarget, setSelectorTarget] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Fetch laptops from backend API
   useEffect(() => {
+    const fetchLaptops = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        // Use CRA proxy to call backend: GET /api/laptops
+        const res = await fetch("/api/laptops");
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+          throw new Error(data.message || "Failed to load laptops");
+        }
+
+        setLaptops(data.data || []);
+      } catch (err) {
+        setError(err.message || "Failed to load laptops");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLaptops();
+  }, []);
+
+  // Sync selected products from URL params once laptops are loaded
+  useEffect(() => {
+    if (!laptops.length) return;
+
     const product1Id = searchParams.get('product1');
     const product2Id = searchParams.get('product2');
     
     if (product1Id) {
-      const p1 = laptops.find(l => l.id === product1Id);
+      const p1 = laptops.find(l => (l._id || l.id) === product1Id);
       setProduct1(p1);
     }
     
     if (product2Id) {
-      const p2 = laptops.find(l => l.id === product2Id);
+      const p2 = laptops.find(l => (l._id || l.id) === product2Id);
       setProduct2(p2);
     }
-  }, [searchParams]);
+  }, [searchParams, laptops]);
 
   const updateUrl = (p1, p2) => {
     const params = new URLSearchParams();
-    if (p1) params.set('product1', p1.id);
-    if (p2) params.set('product2', p2.id);
+    if (p1) params.set('product1', p1._id || p1.id);
+    if (p2) params.set('product2', p2._id || p2.id);
     setSearchParams(params);
   };
 
   const handleProductSelect = (product) => {
+    const productId = product._id || product.id;
     if (selectorTarget === 'product1') {
-      const newProduct2 = product2 && product2.id === product.id ? null : product2;
+      const newProduct2 = product2 && (product2._id || product2.id) === productId ? null : product2;
       setProduct1(product);
       setProduct2(newProduct2);
       updateUrl(product, newProduct2);
     } else if (selectorTarget === 'product2') {
-      const newProduct1 = product1 && product1.id === product.id ? null : product1;
+      const newProduct1 = product1 && (product1._id || product1.id) === productId ? null : product1;
       setProduct2(product);
       setProduct1(newProduct1);
       updateUrl(newProduct1, product);
@@ -71,7 +103,12 @@ export default function ProductComparison() {
   };
 
   const availableProducts = laptops.filter(
-    laptop => laptop.id !== product1?.id && laptop.id !== product2?.id
+    laptop => {
+      const laptopId = laptop._id || laptop.id;
+      const p1Id = product1?._id || product1?.id;
+      const p2Id = product2?._id || product2?.id;
+      return laptopId !== p1Id && laptopId !== p2Id;
+    }
   );
 
   const filteredProducts = availableProducts.filter(product =>
@@ -98,6 +135,18 @@ export default function ProductComparison() {
         </button>
 
         <h1 className="comparison-title">Compare Products</h1>
+
+        {loading && (
+          <div className="loading-state">
+            <p>Loading laptops...</p>
+          </div>
+        )}
+
+        {error && !loading && (
+          <div className="error-state">
+            <p>{error}</p>
+          </div>
+        )}
 
         {/* Product Selection */}
         <div className="product-selection">

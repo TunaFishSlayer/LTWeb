@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../lib/auth';
-import { useCartStore } from '../lib/cart';
+import { useAuthStore } from '../../lib/auth';
+import { useCartStore } from '../../lib/cart';
 import { toast } from 'sonner';
 import '../styles/OrderHistory.css';
+
+const API_BASE = '/api';
 
 export default function OrderHistory() {
   const { user } = useAuthStore();
@@ -11,21 +13,74 @@ export default function OrderHistory() {
   const location = useLocation();
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        // Get orders from localStorage
-        const savedOrders = JSON.parse(localStorage.getItem(`user_${user?.id}_orders`) || '[]');
-        
-        // Check for new order from location state (from successful payment)
+        const token = localStorage.getItem('token');
+        if (!token) {
+          navigate('/login');
+          return;
+        }
+
+        // Fetch orders from backend API
+        const response = await fetch(`${API_BASE}/orders/my`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          throw new Error(data.message || 'Failed to fetch orders');
+        }
+
+        // Transform backend order format to match frontend expectations
+        const transformedOrders = data.data.map(order => ({
+          id: order._id || order.id,
+          date: order.createdAt || order.date,
+          status: order.status || 'pending',
+          items: order.items.map(item => ({
+            id: item.laptop._id || item.laptop.id,
+            name: item.laptop.name,
+            image: item.laptop.image,
+            price: item.price || item.laptop.price,
+            quantity: item.quantity
+          })),
+          subtotal: order.totalPrice,
+          total: order.totalPrice,
+          shipping: 0,
+          shippingAddress: order.shippingAddress
+        }));
+
+        // Check for new order from location state (from successful checkout)
         const newOrder = location.state?.order;
-        let updatedOrders = [...savedOrders];
+        let finalOrders = transformedOrders;
         
-        if (newOrder && !savedOrders.some(order => order.id === newOrder.id)) {
-          updatedOrders = [newOrder, ...savedOrders];
-          localStorage.setItem(`user_${user?.id}_orders`, JSON.stringify(updatedOrders));
+        if (newOrder && !transformedOrders.some(order => 
+          order.id === (newOrder._id || newOrder.id)
+        )) {
+          // Transform new order to match format
+          const transformedNewOrder = {
+            id: newOrder._id || newOrder.id,
+            date: newOrder.createdAt || new Date().toISOString(),
+            status: newOrder.status || 'paid',
+            items: newOrder.items?.map(item => ({
+              id: item.laptop?._id || item.laptop?.id || item.id,
+              name: item.laptop?.name || item.name,
+              image: item.laptop?.image || item.image,
+              price: item.price || item.laptop?.price,
+              quantity: item.quantity
+            })) || [],
+            subtotal: newOrder.totalPrice,
+            total: newOrder.totalPrice,
+            shipping: 0,
+            shippingAddress: newOrder.shippingAddress
+          };
+          finalOrders = [transformedNewOrder, ...transformedOrders];
           
           // Show success message and clear cart for new orders
           if (location.state?.paymentSuccess) {
@@ -36,28 +91,22 @@ export default function OrderHistory() {
           }
         }
         
-        // Also check for legacy payment_success query parameter
-        const searchParams = new URLSearchParams(location.search);
-        const legacyPaymentSuccess = searchParams.get('payment_success');
-        
-        if (legacyPaymentSuccess === 'true') {
-          toast.success('Payment successful! Your order has been placed.');
-          clearCart();
-          // Remove the query parameter from URL
-          window.history.replaceState({}, document.title, window.location.pathname);
-        }
-        
-        setOrders(updatedOrders);
+        setOrders(finalOrders);
       } catch (error) {
-        console.error('Error processing orders:', error);
-        toast.error('Failed to process orders. Please try again.');
+        console.error('Error fetching orders:', error);
+        setError(error.message || 'Failed to load orders');
+        toast.error(error.message || 'Failed to load orders');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchOrders();
-  }, [user?.id, location, clearCart]);
+    if (user) {
+      fetchOrders();
+    } else {
+      setLoading(false);
+    }
+  }, [user, location, clearCart, navigate]);
 
   if (loading) {
     return (
@@ -68,6 +117,20 @@ export default function OrderHistory() {
           <div className="loading-dot"></div>
         </div>
         <p className="loading-text">Loading your orders...</p>
+      </div>
+    );
+  }
+
+  if (error && orders.length === 0) {
+    return (
+      <div className="no-orders">
+        <div className="empty-state">
+          <h2>Error Loading Orders</h2>
+          <p>{error}</p>
+          <Link to="/products" className="shop-now-btn">
+            Back to Products
+          </Link>
+        </div>
       </div>
     );
   }
@@ -123,9 +186,9 @@ export default function OrderHistory() {
           <div key={order.id} className="order-card">
             <div className="order-header">
               <div>
-                <h3>Order: {order.id}</h3>
+                <h3>Order: {order.id || order._id}</h3>
                 <p className="order-date">
-                  {new Date(order.date || new Date()).toLocaleDateString('en-US', {
+                  {new Date(order.date || order.createdAt || new Date()).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric',
@@ -136,7 +199,7 @@ export default function OrderHistory() {
               </div>
               <div className="order-status">
                 <span className={`status-badge ${getStatusBadgeClass(order.status)}`}>
-                  {order.status}
+                  {order.status || 'pending'}
                 </span>
               </div>
             </div>
@@ -192,7 +255,7 @@ export default function OrderHistory() {
               {order.status?.toLowerCase() !== 'cancelled' && (
                 <button 
                   className="btn btn-outline"
-                  onClick={() => navigate(`/track-order/${order.id}`)}
+                  onClick={() => navigate(`/track-order/${order.id || order._id}`)}
                 >
                   Track Order
                 </button>

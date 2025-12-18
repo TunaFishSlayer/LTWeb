@@ -12,15 +12,21 @@ export const useCartStore = create(
 
   addItem: (laptop) => {
     const items = get().items;
-    const existingItem = items.find(item => item.laptop.id === laptop.id);
+    // Support both _id and id
+    const laptopId = laptop._id || laptop.id;
+    const existingItem = items.find(item => {
+      const itemId = item.laptop._id || item.laptop.id;
+      return itemId === laptopId;
+    });
 
     if (existingItem) {
       set({
-        items: items.map(item =>
-          item.laptop.id === laptop.id
+        items: items.map(item => {
+          const itemId = item.laptop._id || item.laptop.id;
+          return itemId === laptopId
             ? { ...item, quantity: item.quantity + 1 }
-            : item
-        )
+            : item;
+        })
       });
     } else {
       set({ items: [...items, { laptop, quantity: 1 }] });
@@ -28,7 +34,12 @@ export const useCartStore = create(
   },
 
   removeItem: (laptopId) => {
-    set({ items: get().items.filter(item => item.laptop.id !== laptopId) });
+    set({ 
+      items: get().items.filter(item => {
+        const itemId = item.laptop._id || item.laptop.id;
+        return itemId !== laptopId;
+      })
+    });
   },
 
   updateQuantity: (laptopId, quantity) => {
@@ -38,9 +49,10 @@ export const useCartStore = create(
     }
 
     set({
-      items: get().items.map(item =>
-        item.laptop.id === laptopId ? { ...item, quantity } : item
-      )
+      items: get().items.map(item => {
+        const itemId = item.laptop._id || item.laptop.id;
+        return itemId === laptopId ? { ...item, quantity } : item;
+      })
     });
   },
 

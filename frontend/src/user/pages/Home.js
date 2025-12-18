@@ -1,16 +1,44 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { FaArrowRight, FaShieldAlt, FaTruck, FaHeadphones, FaStar } from "react-icons/fa";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import ProductCard from "../components/ProductCard";
 import CartSidebar from "../components/CartSidebar";
-import { laptops } from "../lib/laptop";
 import "../styles/Home.css";
 import { useNavigate } from "react-router-dom";
 
 export default function Home() {
   const navigate = useNavigate();
-  const featuredLaptops = laptops.filter((laptop) => laptop.featured);
+  const [featuredLaptops, setFeaturedLaptops] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  // Fetch featured laptops from backend API
+  useEffect(() => {
+    const fetchFeatured = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        // Use CRA proxy: "proxy": "http://localhost:5000" in frontend/package.json
+        // Get only featured laptops, limited to 3 items
+        const res = await fetch("/api/laptops?featured=true&limit=3&sort=rating");
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+          throw new Error(data.message || "Failed to load featured laptops");
+        }
+
+        setFeaturedLaptops(data.data || []);
+      } catch (err) {
+        setError(err.message || "Failed to load featured laptops");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFeatured();
+  }, []);
 
   return (
     <div className="home-page">
@@ -98,6 +126,18 @@ export default function Home() {
           Handpicked selection of our most popular and highest-rated
           laptops, perfect for any use case.
         </p>
+
+        {loading && (
+          <div className="loading-state">
+            <p>Loading featured laptops...</p>
+          </div>
+        )}
+
+        {error && !loading && (
+          <div className="error-state">
+            <p>{error}</p>
+          </div>
+        )}
 
         <div className="product-grid">
           {featuredLaptops.map((laptop) => (

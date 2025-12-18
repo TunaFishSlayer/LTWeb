@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useCartStore } from '../lib/cart';
-import { useAuthStore } from '../lib/auth';
+import { useCartStore } from '../../lib/cart';
+import { useAuthStore } from '../../lib/auth';
 import './Header.css';
 import { LuSearch, LuShoppingCart, LuMenu, LuUser } from "react-icons/lu";
 
@@ -24,11 +24,13 @@ export default function Header() {
         {/* Logo + Menu */}
         <div className="header-left">
           <Link to="/" className="logo">
-            Taplop
+            <img src="taplop-high-resolution-logo-transparent.png" alt="Taplop Logo" />
+            <h2>TAPLOP</h2>
           </Link>
 
+
           <nav className={`nav ${menuOpen ? 'open' : ''}`}>
-            <Link to="/" onClick={() => setMenuOpen(false)}>Home</Link>
+            <Link to="/home" onClick={() => setMenuOpen(false)}>Home</Link>
             <Link to="/products" onClick={() => setMenuOpen(false)}>Products</Link>
             <Link to="/about" onClick={() => setMenuOpen(false)}>About Us</Link>
             <Link to="/contact" onClick={() => setMenuOpen(false)}>Contact</Link>
