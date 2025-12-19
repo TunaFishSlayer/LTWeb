@@ -9,7 +9,7 @@ export default function Footer() {
         <div className="footer-grid">
           {/* Cột 1 */}
           <div className="footer-column">
-            <h3 className="footer-title">LaptopHub</h3>
+            <h3 className="footer-title">TopLap</h3>
             <p className="footer-text">
               Your trusted destination for premium laptops. We offer the latest
               models from top brands with competitive prices and excellent
@@ -43,15 +43,15 @@ export default function Footer() {
           <div className="footer-column">
             <h4 className="footer-heading">Contact Info</h4>
             <ul className="footer-contact">
-              <li>+1 (555) 123-4567</li>
-              <li>support@laptophub.com</li>
-              <li> 123 Tech Street, Silicon Valley</li>
+              <li>+84 3 123-4567</li>
+              <li>support@gmail.com</li>
+              <li> 1 Dai Co Viet, Hai Ba Trung, Ha Noi</li>
             </ul>
           </div>
         </div>
 
         <div className="footer-bottom">
-          <p>&copy; 2024 LaptopHub. All rights reserved.</p>
+          <p>&copy; 2024 TopLap All. rights reserved.</p>
         </div>
       </div>
     </footer>

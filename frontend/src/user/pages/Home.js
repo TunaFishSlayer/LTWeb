@@ -66,11 +66,11 @@ export default function Home() {
               >
                 Shop Now <FaArrowRight size={16} />
               </button>
-              <button className="btn-outline">Learn More</button>
+              <button className="btn-outline" onClick={() => navigate('/about')}>Learn More</button>
             </div>
             <div className="hero-stats">
               <div>
-                <FaStar className="star" /> 4.8/5 Customer Rating
+                <FaStar className="star" /> 4.8/5 Customer  Rating
               </div>
               <div>
                 <strong>10,000+</strong> Happy Customers

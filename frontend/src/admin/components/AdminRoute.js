@@ -1,7 +1,8 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, Routes, Route } from 'react-router-dom';
 import { useAuthStore } from '../../lib/auth';
+import AdminDashboard from '../AdminDashboard';
 
-export default function AdminRoute({ children }) {
+export default function AdminRoute() {
   const { isAuthenticated, isAdmin } = useAuthStore();
   
   if (!isAuthenticated) {
@@ -14,5 +15,10 @@ export default function AdminRoute({ children }) {
     return <Navigate to="/" replace />;
   }
 
-  return children;
+  return (
+    <Routes>
+      <Route path="/" element={<AdminDashboard />} />
+      <Route path="/*" element={<AdminDashboard />} />
+    </Routes>
+  );
 }

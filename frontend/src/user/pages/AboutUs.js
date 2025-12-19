@@ -14,7 +14,7 @@ export default function AboutUs() {
       <section className="hero-section">
         <div className="hero-content">
           <h1>
-            About <span className="highlight">LaptopHub</span>
+            About <span className="highlight">TopLap</span>
           </h1>
           <p>
             Your trusted partner in finding the perfect laptop for work, gaming, and everything in between.
@@ -28,7 +28,7 @@ export default function AboutUs() {
           <div className="story-text">
             <h2>Our Story</h2>
             <p>
-              Founded in 2020, LaptopHub began with a simple mission: to make premium laptops accessible to everyone.
+              Founded in 2020, TopLap began with a simple mission: to make premium laptops accessible to everyone.
               We recognized that choosing the right laptop could be overwhelming, with countless specifications and brands to consider.
             </p>
             <p>

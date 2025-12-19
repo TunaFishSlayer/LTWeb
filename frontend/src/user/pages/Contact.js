@@ -39,7 +39,7 @@ export default function Contact() {
                 <Phone className="icon blue" />
                 <div>
                   <h3>Phone Support</h3>
-                  <p>+1 (555) 123-4567</p>
+                  <p>+84 3 123-4567</p>
                   <small>
                     Mon-Fri: 9:00 AM - 8:00 PM EST<br />
                     Sat-Sun: 10:00 AM - 6:00 PM EST
@@ -51,7 +51,7 @@ export default function Contact() {
                 <Mail className="icon green" />
                 <div>
                   <h3>Email Support</h3>
-                  <p>support@laptophub.com</p>
+                  <p>support@gmail.com</p>
                   <small>We typically respond within 2–4 hours during business hours</small>
                 </div>
               </div>
@@ -61,7 +61,7 @@ export default function Contact() {
                 <div>
                   <h3>Visit Our Store</h3>
                   <p>
-                    123 Tech Street<br />Silicon Valley, CA 94025
+                    1 Dai Co Viet<br />Hai Ba Trung, Ha Noi
                   </p>
                   <small>
                     Mon-Sat: 10:00 AM - 7:00 PM<br />
@@ -100,7 +100,7 @@ export default function Contact() {
               <input type="email" placeholder="john@example.com" />
 
               <label>Phone (Optional)</label>
-              <input type="tel" placeholder="+1 (555) 123-4567" />
+              <input type="tel" placeholder="+84 3 123-4567" />
 
               <label>Subject</label>
               <input type="text" placeholder="How can we help you?" />

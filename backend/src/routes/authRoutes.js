@@ -3,8 +3,11 @@ import {
   register,
   login,
   loginGoogle,
+  forgotPassword,
+  resetPassword,
   getProfile
-} from "../controllers/authController.js";
+} from "../controllers/AuthController.js";
+import { testEmail } from "../controllers/testController.js";
 import { validateRegister, validateLogin } from "../middlewares/validateAuth.js";
 import authMiddleware from "../middlewares/authMiddleware.js";
 
@@ -13,6 +16,9 @@ const router = express.Router();
 router.post("/register", validateRegister, register);
 router.post("/login", validateLogin, login);
 router.post("/google", loginGoogle);
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password", resetPassword);
+router.get("/test-email", testEmail);
 router.get("/me", authMiddleware, getProfile);
 
 export default router;

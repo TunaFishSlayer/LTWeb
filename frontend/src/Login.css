@@ -329,6 +329,26 @@
   box-shadow: 0 4px 15px rgba(52, 50, 89, 0.2);
 }
 
+.btn-back {
+  width: 100%;
+  padding: 0.875rem;
+  background: transparent;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  font-weight: 500;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin: 0.5rem 0;
+}
+
+.btn-back:hover {
+  background: #f1f5f9;
+  color: #4f46e5;
+  border-color: #4f46e5;
+}
+
 .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(79, 70, 229, 0.3);

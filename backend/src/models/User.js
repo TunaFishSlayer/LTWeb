@@ -6,7 +6,9 @@ const userSchema = new mongoose.Schema({
     name: {type: String, required: true},
     provider: {type: String, enum: ['local', 'google'], default: 'local'},
     googleId: {type: String, unique: true, sparse: true},
-    role: {type: String, enum: ['admin', 'user'], default: 'user'}
+    role: {type: String, enum: ['admin', 'user'], default: 'user'},
+    passwordResetToken: {type: String, required: false},
+    passwordResetExpires: {type: Date, required: false}
 }, {
     timestamps: true
 })

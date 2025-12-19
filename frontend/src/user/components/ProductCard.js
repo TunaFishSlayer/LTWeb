@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Star, ShoppingCart, Lock, Percent } from "lucide-react";
+import { Star, ShoppingCart, Lock } from "lucide-react";
 import { useCartStore } from "../../lib/cart";
 import { useAuthStore } from "../../lib/auth";
 import "./ProductCard.css";

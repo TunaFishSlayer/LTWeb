@@ -1,0 +1,208 @@
+.forgot-pass-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f7fafc;
+  padding: 20px;
+}
+
+.forgot-pass-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  padding: 40px;
+  width: 100%;
+  max-width: 420px;
+  position: relative;
+}
+
+.forgot-pass-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #667eea;
+  text-decoration: none;
+  font-size: 14px;
+  margin-bottom: 20px;
+  transition: color 0.3s ease;
+}
+
+.back-link:hover {
+  color: #5a67d8;
+}
+
+.forgot-pass-title {
+  color: #2d3748;
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 10px 0;
+}
+
+.forgot-pass-subtitle {
+  color: #718096;
+  font-size: 16px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.forgot-pass-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.forgot-pass-form label {
+  color: #4a5568;
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: -10px;
+}
+
+.input-group-email {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.icon-email {
+  position: absolute;
+  left: 16px;
+  color: #a0aec0;
+  z-index: 1;
+  size: 18px;
+}
+
+.forgot-pass-form input {
+  width: 100%;
+  padding: 14px 16px 14px 45px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  background: #f7fafc;
+}
+
+.forgot-pass-form input:focus {
+  outline: none;
+  border-color: #667eea;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.forgot-pass-form input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error-message {
+  background: #fed7d7;
+  color: #c53030;
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  margin: -10px 0;
+  border: 1px solid #feb2b2;
+}
+
+.success-message {
+  background: #c6f6d5;
+  color: #2f855a;
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  margin: -10px 0;
+  border: 1px solid #9ae6b4;
+}
+
+.btn-submit {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 14px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 10px;
+}
+
+.btn-submit:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+}
+
+.btn-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.forgot-pass-footer {
+  text-align: center;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.forgot-pass-footer p {
+  color: #718096;
+  font-size: 14px;
+  margin: 0;
+}
+
+.login-link {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.login-link:hover {
+  color: #5a67d8;
+  text-decoration: underline;
+}
+
+/* Forgot password link in login form */
+.forgot-password-link {
+  text-align: right;
+  margin: 10px 0;
+}
+
+.forgot-link {
+  color: #4f46e5;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.forgot-link:hover {
+  color: #7c3aed;
+  text-decoration: underline;
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+  .forgot-pass-page {
+    padding: 10px;
+  }
+  
+  .forgot-pass-card {
+    padding: 30px 20px;
+  }
+  
+  .forgot-pass-title {
+    font-size: 24px;
+  }
+  
+  .forgot-pass-subtitle {
+    font-size: 14px;
+  }
+}

@@ -1,5 +1,5 @@
-// models/Order.js
 import mongoose from "mongoose";
+
 const orderSchema = new mongoose.Schema(
   {
     user: {
@@ -29,9 +29,22 @@ const orderSchema = new mongoose.Schema(
       type: String,
       enum: ['pending', 'paid', 'shipped', 'completed', 'cancelled'],
       default: 'pending'
+    },
+
+    shippingAddress: {
+      firstName: String,
+      lastName: String,
+      email: String,
+      phone: String,
+      address: String,
+      city: String,
+      state: String,
+      zipCode: String,
+      country: String
     }
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model('Order', orderSchema);
+const Order = mongoose.model('Order', orderSchema);
+export default Order;

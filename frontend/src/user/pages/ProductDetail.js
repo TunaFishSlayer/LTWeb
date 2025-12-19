@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Star, ShoppingCart, Lock, Plus, Minus } from "lucide-react";
+import { ArrowLeft, Star, ShoppingCart, Lock, Plus, Minus, ChevronLeft, ChevronRight } from "lucide-react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import CartSidebar from "../components/CartSidebar";
@@ -21,6 +21,7 @@ export default function ProductDetail() {
   const [error, setError] = useState("");
   const [discount, setDiscount] = useState(null);
   const [finalPrice, setFinalPrice] = useState(0);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // Fetch single laptop and discount information
   useEffect(() => {
@@ -114,6 +115,19 @@ export default function ProductDetail() {
   const increaseQuantity = () => setQuantity(prev => prev + 1);
   const decreaseQuantity = () => setQuantity(prev => Math.max(1, prev - 1));
 
+  // Image navigation functions
+  const goToPreviousImage = () => {
+    if (currentImageIndex > 0) {
+      setCurrentImageIndex(currentImageIndex - 1);
+    }
+  };
+
+  const goToNextImage = () => {
+    if (laptop?.additionalImages && currentImageIndex < laptop.additionalImages.length - 1) {
+      setCurrentImageIndex(currentImageIndex + 1);
+    }
+  };
+
   return (
     <div className="product-detail-container">
       <Header />
@@ -144,8 +158,26 @@ export default function ProductDetail() {
           {/* Product Image */}
           <div className="product-image-section">
             <div className="main-image">
-              <img src={laptop.image} alt={laptop.name} />
+              <img 
+                src={currentImageIndex === 0 ? laptop.image : laptop.additionalImages[currentImageIndex - 1]} 
+                alt={laptop.name} 
+              />
               {!laptop.inStock && <div className="out-of-stock-overlay">Out of Stock</div>}
+              {/* Image Navigation Buttons */}
+              <button 
+                className="image-nav-btn prev" 
+                onClick={goToPreviousImage}
+                disabled={currentImageIndex === 0}
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <button 
+                className="image-nav-btn next" 
+                onClick={goToNextImage}
+                disabled={!laptop?.additionalImages || currentImageIndex === laptop.additionalImages.length}
+              >
+                <ChevronRight size={20} />
+              </button>
             </div>
           </div>
 

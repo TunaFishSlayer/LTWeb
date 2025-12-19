@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { LuUser, LuLock, LuEye, LuEyeClosed } from "react-icons/lu";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuthStore } from "./lib/auth";
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import "./Login.css";
 
 
@@ -40,6 +41,25 @@ const apiRegister = async (email, password, name) => {
   
   return response.json();
 };
+
+const apiGoogleLogin = async (credential) => {
+  const response = await fetch(`${API_BASE}/auth/google`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ credential })
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Google login failed');
+  }
+  
+  return response.json();
+};
+
+const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
 
 export default function Login() {
   const [loginShowPassword, setLoginShowPassword] = useState(false);
@@ -96,7 +116,7 @@ export default function Login() {
       if (result.user.role === 'admin') {
         navigate("/admin");
       } else {
-        navigate("/home");
+        navigate("/user/home");
       }
       
     } catch (err) {
@@ -149,7 +169,7 @@ export default function Login() {
       localStorage.setItem('token', result.token);
       
       // Navigate to home
-      navigate("/home");
+      navigate("/user/home");
       
     } catch (err) {
       // Handle specific error messages
@@ -165,26 +185,54 @@ export default function Login() {
     }
   };
 
-  return (
-    <div className="login-page">
-      <div className="login-card">
-        <h1 className="login-title">Taplop</h1>
-        <p className="login-subtitle">Sign in to continue shopping</p>
+  const handleGoogleLogin = async (credentialResponse) => {
+    try {
+      setLoading(true);
+      setError("");
+      
+      const result = await apiGoogleLogin(credentialResponse.credential);
+      
+      // Update auth store with backend response
+      setAuthUser(result.user);
+      
+      // Store token in localStorage
+      localStorage.setItem('token', result.token);
+      
+      // Navigate based on user role
+      if (result.user.role === 'admin') {
+        navigate("/admin");
+      } else {
+        navigate("/user/home");
+      }
+      
+    } catch (err) {
+      setError(err.message || 'Đăng nhập bằng Google thất bại');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        <div className="tabs">
-          <button
-            className={`tab-btn ${tab === "login" ? "active" : ""}`}
-            onClick={() => setTab("login")}
-          >
-            Sign In
-          </button>
-          <button
-            className={`tab-btn ${tab === "signup" ? "active" : ""}`}
-            onClick={() => setTab("signup")}
-          >
-            Sign Up
-          </button>
-        </div>
+  return (
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+      <div className="login-page">
+        <div className="login-card">
+          <h1 className="login-title">Taplop</h1>
+          <p className="login-subtitle">Sign in to continue shopping</p>
+
+          <div className="tabs">
+            <button
+              className={`tab-btn ${tab === "login" ? "active" : ""}`}
+              onClick={() => setTab("login")}
+            >
+              Sign In
+            </button>
+            <button
+              className={`tab-btn ${tab === "signup" ? "active" : ""}`}
+              onClick={() => setTab("signup")}
+            >
+              Sign Up
+            </button>
+          </div>
 
         {tab === "login" ? (
           <form onSubmit={handleLogin} className="form">
@@ -222,6 +270,12 @@ export default function Login() {
               </span>
             </div>
 
+            <div className="forgot-password-link">
+              <Link to="/forgot-password" className="forgot-link">
+                Quên mật khẩu?
+              </Link>
+            </div>
+
             {error && <div className="error-message">{error}</div>}
             <button 
               type="submit" 
@@ -230,6 +284,22 @@ export default function Login() {
             >
               {loading ? 'Đang xử lý...' : 'Đăng nhập'}
             </button>
+
+            <div className="divider">
+              <span>OR</span>
+            </div>
+
+            <div className="google-login-container">
+              <GoogleLogin
+                onSuccess={handleGoogleLogin}
+                onError={() => {
+                  setError('Đăng nhập bằng Google thất bại');
+                }}
+                disabled={loading}
+                text="signin_with"
+                locale="vi"
+              />
+            </div>
           </form>
         ) : (
           <form onSubmit={handleSignup} className="form">
@@ -320,18 +390,43 @@ export default function Login() {
               </div>
             </div>
 
+            {error && <div className="error-message">{error}</div>}
+
             <button type="submit" className="btn-submit">
               Create Account
             </button>
+
+            <div className="divider">
+              <span>OR</span>
+            </div>
+
+            <div className="google-login-container">
+              <GoogleLogin
+                onSuccess={handleGoogleLogin}
+                onError={() => {
+                  setError('Đăng nhập bằng Google thất bại');
+                }}
+                disabled={loading}
+                text="signup_with"
+                locale="vi"
+              />
+            </div>
           </form>
         )}
-
+        <button 
+              type="button" 
+              className="btn-back"
+              onClick={() => navigate('/')}
+            >
+              Về trang chủ
+            </button>
         <div className="demo-info">
           <p>Demo credentials:</p>
-          <p><strong>User:</strong> Email: demo@laptophub.com | Password: demo123</p>
-          <p><strong>Admin:</strong> Email: admin@laptophub.com | Password: admin123</p>
+          <p><strong>User:</strong> Email: test@gmail.com | Password: 123456</p>
+          <p><strong>Admin:</strong> Email: tuongii@gmail.com | Password: 123456</p>
         </div>
       </div>
     </div>
+    </GoogleOAuthProvider>
   );
 }

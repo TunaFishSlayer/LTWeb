@@ -1,63 +1,76 @@
-const mongoose = require('mongoose');
-const Order = require('../models/Order');
-const Laptop = require('../models/Laptop');
+import OrderService from "../services/orderService.js";
+import logger from "../utils/logger.js";
 
-exports.createOrder = async (req, res) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
+// POST /api/orders
+export const createOrder = async (req, res) => {
   try {
-    const cartItems = req.body.items;
-    let totalPrice = 0;
+    const userId = req.user.userId;
+    const { items, shippingAddress } = req.body;
 
-    const orderItems = [];
-
-    for (const item of cartItems) {
-      const laptop = await Laptop.findById(item.laptopId).session(session);
-
-      if (!laptop) {
-        throw new Error('Laptop not found');
-      }
-
-      if (laptop.stock < item.quantity) {
-        throw new Error(`Not enough stock for ${laptop.name}`);
-      }
-
-      // Reduce stock
-      laptop.stock -= item.quantity;
-      if (laptop.stock === 0) {
-        laptop.inStock = false;
-      }
-
-      await laptop.save({ session });
-
-      totalPrice += laptop.price * item.quantity;
-
-      orderItems.push({
-        laptop: laptop._id,
-        quantity: item.quantity,
-        price: laptop.price
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Order items are required"
       });
     }
 
-    const order = await Order.create(
-      [
-        {
-          user: req.user._id,
-          items: orderItems,
-          totalPrice
-        }
-      ],
-      { session }
-    );
+    const order = await OrderService.createOrder(userId, {
+      items,
+      shippingAddress
+    });
 
-    await session.commitTransaction();
-    session.endSession();
+    logger.info(`Order created by user ${userId}: ${order._id}`);
 
-    res.status(201).json(order[0]);
+    return res.status(201).json({
+      success: true,
+      data: order
+    });
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
-    res.status(400).json({ message: error.message });
+    logger.error("Error in createOrder: " + error.message);
+    return res.status(400).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// GET /api/orders/my
+export const getMyOrders = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const orders = await OrderService.getMyOrders(userId);
+
+    return res.status(200).json({
+      success: true,
+      data: orders
+    });
+  } catch (error) {
+    logger.error("Error in getMyOrders: " + error.message);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// GET /api/orders/:id
+export const getOrderById = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const orderId = req.params.id;
+    
+    const order = await OrderService.getOrderById(orderId, userId);
+
+    return res.status(200).json({
+      success: true,
+      data: order
+    });
+  } catch (error) {
+    logger.error("Error in getOrderById: " + error.message);
+    const statusCode = error.message === "Order not found" ? 404 : 500;
+    return res.status(statusCode).json({
+      success: false,
+      message: error.message
+    });
   }
 };

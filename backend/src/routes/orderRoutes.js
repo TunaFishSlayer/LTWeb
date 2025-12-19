@@ -1,10 +1,16 @@
-// routes/orderRoutes.js
-const express = require('express');
+import express from "express";
+import {
+  createOrder,
+  getMyOrders,
+  getOrderById
+} from "../controllers/orderController.js";
+import authMiddleware from "../middlewares/authMiddleware.js";
+
 const router = express.Router();
-const auth = require('../middleware/authMiddleware');
-const orderController = require('../controllers/orderController');
 
-router.post('/', auth, orderController.createOrder);
-router.get('/my', auth, orderController.getMyOrders);
+// All routes require authentication
+router.post("/", authMiddleware, createOrder);
+router.get("/my", authMiddleware, getMyOrders);
+router.get("/:id", authMiddleware, getOrderById);
 
-module.exports = router;
+export default router;

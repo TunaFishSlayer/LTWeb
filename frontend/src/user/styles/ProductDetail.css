@@ -56,6 +56,41 @@
   object-fit: cover;
 }
 
+.image-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.image-nav-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.image-nav-btn.prev {
+  left: 10px;
+}
+
+.image-nav-btn.next {
+  right: 10px;
+}
+
+.image-nav-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .out-of-stock-overlay {
   position: absolute;
   top: 50%;

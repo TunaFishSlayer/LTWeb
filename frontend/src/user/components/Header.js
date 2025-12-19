@@ -13,6 +13,39 @@ export default function Header() {
 
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // Helper function to get the correct path based on authentication
+  const getPath = (path) => {
+    return isAuthenticated ? `/user${path}` : path;
+  };
+
+  // Helper function to get user display name
+  const getUserName = () => {
+    if (!user) return '';
+    
+    // If user has firstName and lastName (regular signup)
+    if (user.firstName && user.lastName) {
+      return `${user.firstName} ${user.lastName}`;
+    }
+    
+    // If user has name field (Google login)
+    if (user.name) {
+      return user.name;
+    }
+    
+    // Fallback to email if no name available
+    return user.email || '';
+  };
+
+  // Helper function to get user initial
+  const getUserInitial = () => {
+    const userName = getUserName();
+    return userName.charAt(0).toUpperCase();
+  };
+
+  const handleLogoClick = () => {
+    navigate(getPath('/home'));
+  };
+
   const handleLogout = () => {
     logout();
     navigate('/');
@@ -23,17 +56,17 @@ export default function Header() {
       <div className="header-container">
         {/* Logo + Menu */}
         <div className="header-left">
-          <Link to="/" className="logo">
-            <img src="taplop-high-resolution-logo-transparent.png" alt="Taplop Logo" />
+          <div className="logo" onClick={handleLogoClick} style={{ cursor: 'pointer' }}>
+            <img src="/taplop-high-resolution-logo-transparent.png" alt="Taplop Logo" />
             <h2>TAPLOP</h2>
-          </Link>
+          </div>
 
 
           <nav className={`nav ${menuOpen ? 'open' : ''}`}>
-            <Link to="/home" onClick={() => setMenuOpen(false)}>Home</Link>
-            <Link to="/products" onClick={() => setMenuOpen(false)}>Products</Link>
-            <Link to="/about" onClick={() => setMenuOpen(false)}>About Us</Link>
-            <Link to="/contact" onClick={() => setMenuOpen(false)}>Contact</Link>
+            <Link to={getPath('/home')} onClick={() => setMenuOpen(false)}>Home</Link>
+            <Link to={getPath('/products')} onClick={() => setMenuOpen(false)}>Products</Link>
+            <Link to={getPath('/about')} onClick={() => setMenuOpen(false)}>About Us</Link>
+            <Link to={getPath('/contact')} onClick={() => setMenuOpen(false)}>Contact</Link>
           </nav>
         </div>
 
@@ -58,15 +91,15 @@ export default function Header() {
               <div className="dropdown-content">
                 <div className="dropdown-user">
                   <div className="user-avatar">
-                    {user?.firstName?.charAt(0).toUpperCase()}
+                    {getUserInitial()}
                   </div>
                   <div className="user-info">
-                    <div className="user-name">{user?.firstName} {user?.lastName}</div>
+                    <div className="user-name">{getUserName()}</div>
                     <div className="user-email">{user?.email}</div>
                   </div>
                 </div>
                 <div className="dropdown-actions">
-                  <Link to="/orders" className="dropdown-link">
+                  <Link to={getPath('/orders')} className="dropdown-link">
                     <span>My Orders</span>
                   </Link>
                   <button onClick={handleLogout} className="logout-btn">

@@ -19,7 +19,7 @@
   position: relative;
   overflow: hidden;
   width: 100%;
-  height: 190px; /* Match the image height */
+  height: 250px; /* Match the image height */
   background-color: #f9fafb; /* Light gray background when no image */
   display: flex;
   align-items: center;
