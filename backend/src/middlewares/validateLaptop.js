@@ -105,7 +105,7 @@ export const validateLaptopUpdate = (req, res, next) => {
   next();
 };
 
-export const validateMongoId = (req, res, next) => {
+export const validateLaptopId = (req, res, next) => {
   const { id } = req.params;
   
   // MongoDB ObjectId validation (24 hex characters)

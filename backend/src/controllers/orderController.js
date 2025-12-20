@@ -1,63 +1,187 @@
-const mongoose = require('mongoose');
-const Order = require('../models/Order');
-const Laptop = require('../models/Laptop');
+import OrderService from "../services/orderService.js";
+import logger from "../utils/logger.js";
 
-exports.createOrder = async (req, res) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
+// USER - POST /api/orders (authenticated users can create orders)
+export const createOrder = async (req, res) => {
   try {
-    const cartItems = req.body.items;
-    let totalPrice = 0;
+    const userId = req.user.userId; // From auth middleware
+    const { items } = req.body;
 
-    const orderItems = [];
+    const order = await OrderService.createOrder(userId, items);
 
-    for (const item of cartItems) {
-      const laptop = await Laptop.findById(item.laptopId).session(session);
+    logger.info(`Order created by user ${userId}`);
 
-      if (!laptop) {
-        throw new Error('Laptop not found');
-      }
+    return res.status(201).json({
+      success: true,
+      message: "Order created successfully",
+      data: order
+    });
+  } catch (error) {
+    logger.error("Error in createOrder: " + error.message);
 
-      if (laptop.stock < item.quantity) {
-        throw new Error(`Not enough stock for ${laptop.name}`);
-      }
-
-      // Reduce stock
-      laptop.stock -= item.quantity;
-      if (laptop.stock === 0) {
-        laptop.inStock = false;
-      }
-
-      await laptop.save({ session });
-
-      totalPrice += laptop.price * item.quantity;
-
-      orderItems.push({
-        laptop: laptop._id,
-        quantity: item.quantity,
-        price: laptop.price
+    if (error.message.includes('not found') || error.message.includes('Insufficient')) {
+      return res.status(400).json({
+        success: false,
+        message: error.message
       });
     }
 
-    const order = await Order.create(
-      [
-        {
-          user: req.user._id,
-          items: orderItems,
-          totalPrice
-        }
-      ],
-      { session }
-    );
+    return res.status(500).json({
+      success: false,
+      message: "Failed to create order"
+    });
+  }
+};
 
-    await session.commitTransaction();
-    session.endSession();
+// USER - DELETE /api/orders/:id (users can cancel their own pending orders)
+export const cancelOrder = async (req, res) => {
+  try {
+    const order = await OrderService.getOrderById(req.params.id);
 
-    res.status(201).json(order[0]);
+    // Users can only cancel their own orders
+    if (req.user.role !== 'admin' && order.user._id.toString() !== req.user.userId) {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden: You can only cancel your own orders"
+      });
+    }
+
+    const deletedOrderId = await OrderService.cancelOrder(req.params.id);
+
+    logger.info(`Order ${req.params.id} cancelled by user ${req.user.userId}`);
+
+    return res.status(200).json({
+      success: true,
+      message: "Order cancelled successfully"
+    });
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
-    res.status(400).json({ message: error.message });
+    logger.error("Error in cancelOrder: " + error.message);
+
+    if (error.message === "Order not found") {
+      return res.status(404).json({
+        success: false,
+        message: error.message
+      });
+    }
+
+    if (error.message.includes('Cannot cancel')) {
+      return res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to cancel order"
+    });
+  }
+};
+
+// USER - GET /api/orders/my-orders (user sees their own orders)
+export const getMyOrders = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { orders, pagination } = await OrderService.getUserOrders(userId, req.query);
+
+    return res.status(200).json({
+      success: true,
+      data: orders,
+      pagination
+    });
+  } catch (error) {
+    logger.error("Error in getMyOrders: " + error.message);
+    return res.status(400).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// USER/ADMIN - GET /api/orders/:id
+export const getOrderById = async (req, res) => {
+  try {
+    const order = await OrderService.getOrderById(req.params.id);
+
+    // Users can only see their own orders, admins can see all
+    if (req.user.role !== 'admin' && order.user._id.toString() !== req.user.userId) {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden: You can only view your own orders"
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: order
+    });
+  } catch (error) {
+    logger.error("Error in getOrderById: " + error.message);
+    const statusCode = error.message === "Order not found" ? 404 : 500;
+    return res.status(statusCode).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// ADMIN - GET /api/orders (admin can get all orders)
+export const getAllOrders = async (req, res) => {
+  try {
+    const { orders, pagination } = await OrderService.getAllOrders(req.query);
+
+    return res.status(200).json({
+      success: true,
+      data: orders,
+      pagination
+    });
+  } catch (error) {
+    logger.error("Error in getAllOrders: " + error.message);
+    return res.status(400).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// ADMIN - PATCH /api/orders/:id/status
+export const updateOrderStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    const order = await OrderService.updateOrderStatus(req.params.id, status);
+
+    logger.info(`Order ${req.params.id} status updated to ${status} by admin ${req.user.userId}`);
+
+    return res.status(200).json({
+      success: true,
+      message: "Order status updated successfully",
+      data: order
+    });
+  } catch (error) {
+    logger.error("Error in updateOrderStatus: " + error.message);
+    const statusCode = error.message === "Order not found" ? 404 : 400;
+    return res.status(statusCode).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// ADMIN - GET /api/orders/stats
+export const getOrderStats = async (req, res) => {
+  try {
+    const { userId } = req.query;
+    const stats = await OrderService.getOrderStats(userId);
+
+    return res.status(200).json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    logger.error("Error in getOrderStats: " + error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch order statistics"
+    });
   }
 };

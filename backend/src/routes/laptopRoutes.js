@@ -11,14 +11,14 @@ import { requireAdmin } from "../middlewares/roleMiddleware.js";
 import { 
   validateLaptopCreate, 
   validateLaptopUpdate,
-  validateMongoId 
+  validateLaptopId 
 } from "../middlewares/validateLaptop.js";
 
 const router = express.Router();
 
 // Public routes
 router.get("/", getAllLaptops);
-router.get("/:id", validateMongoId, getLaptopById);
+router.get("/:id", validateLaptopId, getLaptopById);
 
 // Admin only routes
 router.post("/",
@@ -31,7 +31,7 @@ router.post("/",
 router.put("/:id",
   authMiddleware,
   requireAdmin,
-  validateMongoId,
+  validateLaptopId,
   validateLaptopUpdate,
   updateLaptop
 );
@@ -39,7 +39,7 @@ router.put("/:id",
 router.delete("/:id",
   authMiddleware,
   requireAdmin,
-  validateMongoId,
+  validateLaptopId,
   deleteLaptop
 );
 
