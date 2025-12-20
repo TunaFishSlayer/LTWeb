@@ -84,3 +84,52 @@ export const deleteLaptop = async (req, res) => {
     });
   }
 };
+
+export const getFeaturedLaptops = async (req, res) => {
+  try {
+    const { limit = 6 } = req.query;
+    const laptops = await LaptopService.getFeaturedLaptops(parseInt(limit));
+    
+    return res.status(200).json({
+      success: true,
+      data: laptops
+    });
+  } catch (error) {
+    logger.error("Error in getFeaturedLaptops: " + error.message);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+export const updateStock = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { stock } = req.body;
+    
+    if (typeof stock !== 'number' || stock < 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Stock must be a non-negative number"
+      });
+    }
+    
+    const laptop = await LaptopService.updateStock(id, stock);
+    
+    logger.info(`Stock updated for laptop ${id} by admin ${req.user.userId}`);
+    
+    return res.status(200).json({
+      success: true,
+      message: "Stock updated successfully",
+      data: laptop
+    });
+  } catch (error) {
+    logger.error("Error in updateStock: " + error.message);
+    const statusCode = error.message === "Laptop not found" ? 404 : 500;
+    return res.status(statusCode).json({
+      success: false,
+      message: error.message
+    });
+  }
+};

@@ -1,10 +1,12 @@
 import express from "express";
 import {
   getAllLaptops,
+  getFeaturedLaptops,
   getLaptopById,
   createLaptop,
   updateLaptop,
-  deleteLaptop
+  deleteLaptop,
+  updateStock
 } from "../controllers/laptopController.js";
 import authMiddleware from "../middlewares/authMiddleware.js";
 import { requireAdmin } from "../middlewares/roleMiddleware.js"; 
@@ -18,6 +20,7 @@ const router = express.Router();
 
 // Public routes
 router.get("/", getAllLaptops);
+router.get("/featured", getFeaturedLaptops);
 router.get("/:id", validateMongoId, getLaptopById);
 
 // Admin only routes
@@ -43,4 +46,10 @@ router.delete("/:id",
   deleteLaptop
 );
 
+router.patch("/:id/stock",
+  authMiddleware,
+  requireAdmin,
+  validateMongoId,
+  updateStock
+);
 export default router;

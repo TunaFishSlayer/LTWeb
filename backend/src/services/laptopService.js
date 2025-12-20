@@ -122,16 +122,10 @@ class LaptopService {
     return laptop;
   }
 
-  // Bonus: Additional useful methods
   static async getFeaturedLaptops(limit = 6) {
     return await Laptop.find({ featured: true })
       .sort({ rating: -1 })
       .limit(limit);
-  }
-
-  static async getLaptopsByBrand(brand) {
-    return await Laptop.find({ brand })
-      .sort({ rating: -1 });
   }
 
   static async updateStock(laptopId, quantity) {
