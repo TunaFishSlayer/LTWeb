@@ -1,66 +1,10 @@
-import express from "express";
-import {
-  createOrder,
-  getAllOrders,
-  getMyOrders,
-  getOrderById,
-  updateOrderStatus,
-  cancelOrder,
-  getOrderStats
-} from "../controllers/orderController.js";
-import authMiddleware from "../middlewares/authMiddleware.js";
-import { requireAdmin } from "../middlewares/roleMiddleware.js";
-import {
-  validateOrderCreate,
-  validateStatusUpdate,
-  validateOrderId
-} from "../middlewares/validateOrder.js";
-
+// routes/orderRoutes.js
+const express = require('express');
 const router = express.Router();
+const auth = require('../middleware/authMiddleware');
+const orderController = require('../controllers/orderController');
 
-// User routes (authenticated)
-router.post("/",
-  authMiddleware,
-  validateOrderCreate,
-  createOrder
-);
+router.post('/', auth, orderController.createOrder);
+router.get('/my', auth, orderController.getMyOrders);
 
-router.get("/my-orders",
-  authMiddleware,
-  getMyOrders
-);
-
-router.get("/:id",
-  authMiddleware,
-  validateOrderId,
-  getOrderById
-);
-
-router.delete("/:id",
-  authMiddleware,
-  validateOrderId,
-  cancelOrder
-);
-
-// Admin routes
-router.get("/",
-  authMiddleware,
-  requireAdmin,
-  getAllOrders
-);
-
-router.get("/admin/stats",
-  authMiddleware,
-  requireAdmin,
-  getOrderStats
-);
-
-router.patch("/:id/status",
-  authMiddleware,
-  requireAdmin,
-  validateOrderId,
-  validateStatusUpdate,
-  updateOrderStatus
-);
-
-export default router;
+module.exports = router;
