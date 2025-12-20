@@ -5,8 +5,9 @@ import {
   loginGoogle,
   forgotPassword,
   resetPassword,
-  getProfile
-} from "../controllers/AuthController.js";
+  getProfile,
+  updateUserProfile
+} from "../controllers/authController.js";
 import { testEmail } from "../controllers/testController.js";
 import { validateRegister, validateLogin } from "../middlewares/validateAuth.js";
 import authMiddleware from "../middlewares/authMiddleware.js";
@@ -20,5 +21,8 @@ router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 router.get("/test-email", testEmail);
 router.get("/me", authMiddleware, getProfile);
+
+// User routes
+router.put("/me/update", authMiddleware, updateUserProfile);
 
 export default router;
