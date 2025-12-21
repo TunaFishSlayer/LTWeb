@@ -1,6 +1,8 @@
 // routes/userRoutes.js
 import express from "express";
 import {
+  getProfile,
+  updateUserProfile,
   getAllUsers,
   searchUserByEmail,
   updateUserByAdmin,
@@ -11,6 +13,9 @@ import { requireAdmin } from "../middlewares/roleMiddleware.js";
 import { validateMongoId } from "../middlewares/validateLaptop.js";
 
 const router = express.Router();
+
+router.get("/me", authMiddleware, getProfile);
+router.put("/me/update", authMiddleware, updateUserProfile);
 
 // Admin routes
 router.get("/", authMiddleware, requireAdmin, getAllUsers);
