@@ -1,126 +1,34 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "Laptop Store API",
+    "title": "LTWeb API",
     "version": "1.0.0",
-    "description": "Complete REST API for laptop e-commerce store with authentication, product management, order management, and admin features"
-
+    "description": "OpenAPI specification for LTWeb backend"
   },
   "servers": [
     {
       "url": "http://localhost:5000/api",
-      "description": "Development server"
-    }
-  ],
-  "tags": [
-    {
-      "name": "Authentication",
-      "description": "User authentication and authorization endpoints"
-    },
-    {
-      "name": "Users",
-      "description": "User management endpoints for admins"
-    },
-    {
-      "name": "Laptops",
-      "description": "Laptop product management endpoints"
-    },
-    {
-      "name": "Orders",
-      "description": "Order management endpoints for users and admins"
+      "description": "Local server"
     }
   ],
   "paths": {
-    "/auth/register": {
+    "/auth/request-reset-password": {
       "post": {
         "tags": ["Authentication"],
-        "summary": "Register a new user",
-        "description": "Create a new user account with email and password",
+        "summary": "Request password reset code",
+        "description": "Generate and send a password reset code to the provided email.",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["email", "password", "name"],
+                "required": ["email"],
                 "properties": {
                   "email": {
                     "type": "string",
                     "format": "email",
                     "example": "user@example.com"
-                  },
-                  "password": {
-                    "type": "string",
-                    "minLength": 6,
-                    "example": "password123"
-                  },
-                  "name": {
-                    "type": "string",
-                    "example": "John Doe"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "User registered successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "User registered successfully"
-                    },
-                    "user": {
-                      "$ref": "#/components/schemas/User"
-                    },
-                    "token": {
-                      "type": "string",
-                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request - validation error or email already exists",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/auth/login": {
-      "post": {
-        "tags": ["Authentication"],
-        "summary": "Login user",
-        "description": "Authenticate user with email and password",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": ["email", "password"],
-                "properties": {
-                  "email": {
-                    "type": "string",
-                    "format": "email",
-                    "example": "user@example.com"
-                  },
-                  "password": {
-                    "type": "string",
-                    "example": "password123"
                   }
                 }
               }
@@ -129,37 +37,65 @@
         },
         "responses": {
           "200": {
-            "description": "Login successful",
+            "description": "Password reset code sent",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "Login success"
-                    },
-                    "user": {
-                      "$ref": "#/components/schemas/User"
-                    },
-                    "token": {
-                      "type": "string",
-                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                    }
+                    "message": { "type": "string", "example": "Password reset code sent to email" }
                   }
                 }
               }
             }
           },
-          "401": {
-            "description": "Unauthorized - invalid credentials",
+          "400": {
+            "description": "Failed to generate reset code",
             "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          }
+        }
+      }
+    },
+    "/auth/reset-password": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Reset password using code",
+        "description": "Reset the user's password by providing email, code, and new password.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "code", "newPassword"],
+                "properties": {
+                  "email": { "type": "string", "format": "email", "example": "user@example.com" },
+                  "code": { "type": "string", "example": "123456" },
+                  "newPassword": { "type": "string", "minLength": 6, "example": "newStrongPassword123" }
                 }
               }
             }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string", "example": "Password has been reset successfully" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid code or email",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
           }
         }
       }
@@ -175,20 +111,12 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["email", "name", "googleId"],
+                "required": ["credential"],
                 "properties": {
-                  "email": {
+                  "credential": {
                     "type": "string",
-                    "format": "email",
-                    "example": "user@gmail.com"
-                  },
-                  "name": {
-                    "type": "string",
-                    "example": "John Doe"
-                  },
-                  "googleId": {
-                    "type": "string",
-                    "example": "108123456789012345678"
+                    "description": "Google ID token (credential) returned by Google Identity Services",
+                    "example": "eyJhbGciOiJSUzI1NiIsImtpZCI6Ij..."
                   }
                 }
               }
@@ -227,6 +155,93 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Register a new user",
+        "description": "Create a new user account with email and password",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password", "name"],
+                "properties": {
+                  "email": { "type": "string", "format": "email", "example": "user@example.com" },
+                  "password": { "type": "string", "minLength": 6, "example": "password123" },
+                  "name": { "type": "string", "example": "John Doe" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User registered successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string", "example": "User registered successfully" },
+                    "user": { "$ref": "#/components/schemas/User" },
+                    "token": { "type": "string", "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - validation error or email already exists",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Login user",
+        "description": "Authenticate user with email and password",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": { "type": "string", "format": "email", "example": "user@example.com" },
+                  "password": { "type": "string", "example": "password123" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string", "example": "Login success" },
+                    "user": { "$ref": "#/components/schemas/User" },
+                    "token": { "type": "string", "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - invalid credentials",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
           }
         }
       }
@@ -797,67 +812,6 @@
         }
       }
     },
-    "/laptops/search": {
-      "get": {
-        "tags": ["Laptops"],
-        "summary": "Search laptops using text index",
-        "description": "Full-text search across laptop name, brand, and specs",
-        "parameters": [
-          {
-            "name": "q",
-            "in": "query",
-            "required": true,
-            "description": "Search query",
-            "schema": {
-              "type": "string",
-              "example": "gaming RTX"
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "default": 1
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "default": 12
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Search results",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    },
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/Laptop"
-                      }
-                    },
-                    "pagination": {
-                      "$ref": "#/components/schemas/Pagination"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/laptops/featured": {
       "get": {
         "tags": ["Laptops"],
@@ -890,37 +844,6 @@
                       "items": {
                         "$ref": "#/components/schemas/Laptop"
                       }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/laptops/brands": {
-      "get": {
-        "tags": ["Laptops"],
-        "summary": "Get all available brands",
-        "description": "Retrieve list of all laptop brands in the store",
-        "responses": {
-          "200": {
-            "description": "Brands list retrieved",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    },
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      },
-                      "example": ["Asus", "Dell", "HP", "Lenovo"]
                     }
                   }
                 }
@@ -1082,6 +1005,48 @@
           "403": {
             "description": "Forbidden - Admin access required"
           }
+        }
+      }
+    },
+    "/laptops/{id}/stock": {
+      "patch": {
+        "tags": ["Laptops"],
+        "summary": "Update laptop stock (Admin only)",
+        "description": "Update the stock quantity for a laptop.",
+        "security": [ { "BearerAuth": [] } ],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" }, "description": "Laptop ID" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["stock"],
+                "properties": { "stock": { "type": "number", "minimum": 0, "example": 15 } }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Stock updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true },
+                    "message": { "type": "string", "example": "Stock updated successfully" },
+                    "data": { "$ref": "#/components/schemas/Laptop" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Validation error" },
+          "404": { "description": "Laptop not found" }
         }
       }
     },
@@ -1315,70 +1280,102 @@
         }
       }
     },
-    "/orders/admin/stats": {
+    "/analytics": {
       "get": {
-        "tags": ["Orders"],
-        "summary": "Get order statistics (Admin only)",
-        "description": "Get order statistics grouped by status",
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
+        "tags": ["Analytics"],
+        "summary": "Get sales and customer analytics (Admin only)",
+        "description": "Returns revenue, orders, AOV, top products, and daily sales within a time range.",
+        "security": [ { "BearerAuth": [] } ],
         "parameters": [
-          {
-            "name": "userId",
-            "in": "query",
-            "description": "Filter stats by specific user (optional)",
-            "schema": {
-              "type": "string"
-            }
-          }
+          { "name": "timeRange", "in": "query", "schema": { "type": "string", "enum": ["week", "month", "quarter"], "default": "month" }, "description": "Analytics period" }
         ],
         "responses": {
           "200": {
-            "description": "Statistics retrieved successfully",
+            "description": "Analytics retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": true
-                    },
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "_id": {
-                            "type": "string",
-                            "example": "paid"
-                          },
-                          "count": {
-                            "type": "integer",
-                            "example": 45
-                          },
-                          "totalAmount": {
-                            "type": "number",
-                            "example": 58499.99
-                          }
-                        }
-                      }
-                    }
+                    "success": { "type": "boolean", "example": true },
+                    "data": { "type": "object" }
                   }
                 }
               }
             }
           },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden - Admin access required"
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden - Admin access required" }
+        }
+      }
+    },
+    "/discounts/active": {
+      "get": {
+        "tags": ["Discounts"],
+        "summary": "Get active discounts",
+        "description": "Public endpoint to retrieve currently active discounts.",
+        "responses": {
+          "200": {
+            "description": "Active discounts retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/Discount" } }
+                  }
+                }
+              }
+            }
           }
         }
+      }
+    },
+    "/discounts": {
+      "get": {
+        "tags": ["Discounts"],
+        "summary": "Get all discounts (Admin only)",
+        "security": [ { "BearerAuth": [] } ],
+        "responses": {
+          "200": {
+            "description": "Discounts retrieved",
+            "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "type": "array", "items": { "$ref": "#/components/schemas/Discount" } } } } } }
+          },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden - Admin access required" }
+        }
+      },
+      "post": {
+        "tags": ["Discounts"],
+        "summary": "Create discount (Admin only)",
+        "security": [ { "BearerAuth": [] } ],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Discount" } } } },
+        "responses": { "201": { "description": "Discount created", "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "$ref": "#/components/schemas/Discount" } } } } } }, "400": { "description": "Validation error" } }
+      }
+    },
+    "/discounts/{id}": {
+      "get": {
+        "tags": ["Discounts"],
+        "summary": "Get discount by ID (Admin only)",
+        "security": [ { "BearerAuth": [] } ],
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } } ],
+        "responses": { "200": { "description": "Discount retrieved", "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "$ref": "#/components/schemas/Discount" } } } } } }, "404": { "description": "Discount not found" } }
+      },
+      "put": {
+        "tags": ["Discounts"],
+        "summary": "Update discount (Admin only)",
+        "security": [ { "BearerAuth": [] } ],
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } } ],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Discount" } } } },
+        "responses": { "200": { "description": "Discount updated", "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "$ref": "#/components/schemas/Discount" } } } } } }, "400": { "description": "Validation error" }, "404": { "description": "Discount not found" } }
+      },
+      "delete": {
+        "tags": ["Discounts"],
+        "summary": "Delete discount (Admin only)",
+        "security": [ { "BearerAuth": [] } ],
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } } ],
+        "responses": { "200": { "description": "Discount deleted", "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "message": { "type": "string", "example": "Discount deleted" } } } } } }, "404": { "description": "Discount not found" } }
       }
     },
     "/orders/{id}": {
@@ -1579,6 +1576,21 @@
       }
     },
     "schemas": {
+      "Discount": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string", "example": "507f1f77bcf86cd799439011" },
+          "code": { "type": "string", "example": "NEWYEAR25" },
+          "description": { "type": "string", "example": "New Year sale" },
+          "percentage": { "type": "number", "example": 15 },
+          "amount": { "type": "number", "example": 100 },
+          "active": { "type": "boolean", "example": true },
+          "startDate": { "type": "string", "format": "date-time" },
+          "endDate": { "type": "string", "format": "date-time" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
       "User": {
         "type": "object",
         "properties": {
@@ -1638,7 +1650,7 @@
           }
         }
       },
-    "Laptop": {
+      "Laptop": {
         "type": "object",
         "properties": {
           "_id": {

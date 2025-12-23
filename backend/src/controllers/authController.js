@@ -1,9 +1,8 @@
 import UserService from "../services/userService.js";
+import EmailService from "../services/emailService.js";
 import logger from "../utils/logger.js";
 import { signToken } from "../utils/role.js";
 import { OAuth2Client } from 'google-auth-library';
-import crypto from 'crypto';
-import EmailService from '../services/emailService.js';
 
 // POST /api/auth/register
 export const register = async (req, res) => {
@@ -110,118 +109,31 @@ export const loginGoogle = async (req, res) => {
   }
 };
 
-// POST /api/auth/forgot-password
-export const forgotPassword = async (req, res) => {
-  try {
-    const { email } = req.body;
-    
-    if (!email) {
-      return res.status(400).json({
-        message: "Email is required"
-      });
-    }
-
-    // Check if user exists
-    const user = await UserService.findUserByEmail(email);
-    
-    if (!user) {
-      // Don't reveal that user doesn't exist for security
-      return res.status(200).json({
-        message: "If an account with that email exists, a password reset link has been sent."
-      });
-    }
-
-    // Generate reset token
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    const resetTokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
-    
-    // Set token expiration (1 hour)
-    const resetExpires = new Date(Date.now() + 3600000); // 1 hour from now
-
-    // Save token to database
-    await UserService.setPasswordResetToken(email, resetTokenHash, resetExpires);
-
-    // For testing: return the reset link in response
-    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${resetToken}`;
-    
-    logger.info("Password reset requested for email: " + email);
-    logger.info("Reset URL (for testing): " + resetUrl);
-
-    try {
-      // Try to send email (will fail with placeholder credentials)
-      await EmailService.sendPasswordResetEmail(email, resetToken);
-      
-      return res.status(200).json({
-        message: "If an account with that email exists, a password reset link has been sent.",
-        // For testing: include reset URL
-        resetUrl: resetUrl
-      });
-    } catch (emailError) {
-      logger.error("Email sending failed, but continuing for testing:", emailError);
-      
-      // Still return success with reset URL for testing
-      return res.status(200).json({
-        message: "If an account with that email exists, a password reset link has been sent.",
-        // For testing: include reset URL when email fails
-        resetUrl: resetUrl
-      });
-    }
-  } catch (error) {
-    logger.warn("Forgot password error: " + error.message);
-    return res.status(500).json({
-      message: "Internal server error"
+// POST /api/auth/request-reset-password
+export const requestResetPassword = async (req, res) => {
+  const { email } = req.body;
+  const code = await UserService.requestResetPassword(email);
+  if (code) {
+    await EmailService.sendPasswordResetEmail(email, code);
+    logger.info(`Password reset email sent to ${email}`);
+    return res.status(200).json({ 
+      message: "Password reset code sent to email"
     });
+  } else {
+    logger.warn(`Failed to generate reset code for ${email}`);
+    return res.status(400).json({ message: "Failed to generate reset code" });
   }
 };
 
 // POST /api/auth/reset-password
 export const resetPassword = async (req, res) => {
+  const { email, code, newPassword } = req.body;
   try {
-    const { token, newPassword } = req.body;
-    
-    if (!token || !newPassword) {
-      return res.status(400).json({
-        message: "Token and new password are required"
-      });
-    }
-
-    if (newPassword.length < 6) {
-      return res.status(400).json({
-        message: "Password must be at least 6 characters"
-      });
-    }
-
-    // Hash the token to compare with stored hash
-    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
-    
-    // Find user with valid reset token
-    const user = await UserService.findUserByResetToken(tokenHash);
-    
-    if (!user) {
-      return res.status(400).json({
-        message: "Invalid or expired reset token"
-      });
-    }
-
-    // Check if token has expired
-    if (user.passwordResetExpires < new Date()) {
-      return res.status(400).json({
-        message: "Invalid or expired reset token"
-      });
-    }
-
-    // Update password and clear reset token
-    await UserService.updatePassword(user._id, newPassword);
-    
-    logger.info("Password reset successful for user: " + user.email);
-
-    return res.status(200).json({
-      message: "Password reset successful"
-    });
+    await UserService.resetPassword(email, code, newPassword);
   } catch (error) {
-    logger.warn("Reset password error: " + error.message);
-    return res.status(500).json({
-      message: "Internal server error"
-    });
+    logger.warn(`Password reset failed for ${email}: ${error.message}`);
+    return res.status(400).json({ message: error.message });
   }
+  logger.info(`Password reset successful for ${email}`);
+  return res.status(200).json({ message: "Password has been reset successfully" });
 };
