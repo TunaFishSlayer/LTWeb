@@ -9,7 +9,7 @@ import ProductDetail from '../pages/ProductDetail';
 import ProductComparison from '../pages/ProductComparison';
 import AboutUs from '../pages/AboutUs';
 import Contact from '../pages/Contact';
-import ForgotPass from '../pages/ForgotPass';
+
 
 export default function ProtectedRoute() {
   const { isAuthenticated, user } = useAuthStore();
@@ -35,7 +35,6 @@ export default function ProtectedRoute() {
       <Route path="/checkout" element={<Checkout />} />
       <Route path="/orders" element={<OrderHistory />} />
       <Route path="/track-order/:orderId" element={<TrackOrder />} />
-      <Route path="/forgot-password" element={<ForgotPass />} />
       <Route path="*" element={<Navigate to="/user/home" replace />} />
     </Routes>
   );

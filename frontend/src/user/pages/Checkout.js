@@ -186,8 +186,8 @@ export default function Checkout() {
           <p>Thank you for your purchase.</p>
           <p><strong>Order ID:</strong> {orderId}</p>
           <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-            <button onClick={() => navigate('/orders')}>View Order History</button>
-            <button onClick={() => navigate('/')}>Continue Shopping</button>
+            <button onClick={() => navigate('/user/orders')}>View Order History</button>
+            <button onClick={() => navigate('/user/home')}>Continue Shopping</button>
           </div>
         </div>
       </div>

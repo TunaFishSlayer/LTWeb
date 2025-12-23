@@ -134,7 +134,7 @@ export default function ProductDetail() {
       <CartSidebar />
 
       <div className="product-detail-content">
-        <button className="back-button" onClick={() => navigate("/products")}>
+        <button className="back-button" onClick={() => navigate("/user/products")}>
           <ArrowLeft size={20} />
           Back to Products
         </button>
@@ -149,7 +149,7 @@ export default function ProductDetail() {
           <div className="not-found">
             <h2>Product Not Found</h2>
             <p>{error}</p>
-            <button onClick={() => navigate("/products")}>Back to Products</button>
+            <button onClick={() => navigate("/user/products")}>Back to Products</button>
           </div>
         )}
 
@@ -283,7 +283,7 @@ export default function ProductDetail() {
           <h2>Compare with other products</h2>
           <button 
             className="compare-btn"
-            onClick={() => laptop && navigate(`/compare?product1=${laptop._id || laptop.id}`)}
+            onClick={() => laptop && navigate(`/user/compare?product1=${laptop._id || laptop.id}`)}
           >
             Choose Product to Compare
           </button>

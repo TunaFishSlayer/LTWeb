@@ -42,7 +42,7 @@ export default function CartSidebar() {
 
     // Simply navigate to checkout - order will be created there
     toggleCart();
-    navigate('/checkout');
+    navigate('/user/checkout');
   };
 
   if (!isOpen) return null; // nếu giỏ hàng chưa mở thì không hiển thị

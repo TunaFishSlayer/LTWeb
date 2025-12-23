@@ -26,7 +26,7 @@ export default function Products() {
           </p>
           <button 
             className="compare-button"
-            onClick={() => navigate("/compare")}
+            onClick={() => navigate("/user/compare")}
           >
             Compare Products
           </button>

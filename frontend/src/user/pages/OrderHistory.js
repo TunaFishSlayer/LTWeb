@@ -127,7 +127,7 @@ export default function OrderHistory() {
         <div className="empty-state">
           <h2>Error Loading Orders</h2>
           <p>{error}</p>
-          <Link to="/products" className="shop-now-btn">
+          <Link to="/user/products" className="shop-now-btn">
             Back to Products
           </Link>
         </div>
@@ -148,7 +148,7 @@ export default function OrderHistory() {
           </div>
           <h2>No Orders Yet</h2>
           <p>You haven't placed any orders yet.</p>
-          <Link to="/products" className="shop-now-btn">
+          <Link to="/user/products" className="shop-now-btn">
             Start Shopping
           </Link>
         </div>
@@ -177,7 +177,7 @@ export default function OrderHistory() {
     <div className="order-history-container">
       <div className="order-history-header">
         <h1>Order History</h1>
-        <Link to="/products" className="btn btn-outline">
+        <Link to="/user/products" className="btn btn-outline">
           &larr; Back to Products
         </Link>
       </div>
@@ -255,12 +255,12 @@ export default function OrderHistory() {
               {order.status?.toLowerCase() !== 'cancelled' && (
                 <button 
                   className="btn btn-outline"
-                  onClick={() => navigate(`/track-order/${order.id || order._id}`)}
+                  onClick={() => navigate(`/user/track-order/${order.id || order._id}`)}
                 >
                   Track Order
                 </button>
               )}
-              <Link to="/products" className="btn btn-primary">
+              <Link to="/user/products" className="btn btn-primary">
                 Buy Again
               </Link>
             </div>

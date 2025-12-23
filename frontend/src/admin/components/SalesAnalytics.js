@@ -75,8 +75,129 @@ export default function SalesAnalytics() {
   };
 
   const exportReport = () => {
-    // Simulate export functionality
-    alert("Đang xuất báo cáo phân tích bán hàng...");
+    try {
+      if (!analytics) {
+        toast.error('Không có dữ liệu để xuất báo cáo');
+        return;
+      }
+
+      // Check if jsPDF is available
+      if (typeof window.jspdf === 'undefined') {
+        toast.error('Đang tải thư viện PDF, vui lòng thử lại sau vài giây...');
+        return;
+      }
+
+      const { jsPDF } = window.jspdf;
+      
+      // Create PDF document with built-in fonts
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+      
+      // Set up fonts and margins (using built-in fonts)
+      doc.setFont('helvetica');
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 20;
+      let yPosition = margin;
+      
+      // Add title with better formatting
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      const title = `Bao cao Phan tich Ban hang - ${timeRange}`;
+      const titleWidth = doc.getTextWidth(title);
+      doc.text(title, (pageWidth - titleWidth) / 2, yPosition);
+      yPosition += 15;
+      
+      // Add line separator
+      doc.setLineWidth(0.5);
+      doc.setDrawColor(200, 200, 200);
+      doc.line(margin, yPosition, pageWidth - margin, yPosition);
+      yPosition += 10;
+      
+      // Add summary section with better formatting
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('TOM TAT DOANH THU:', margin, yPosition);
+      yPosition += 8;
+      
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+      
+      const summaryData = [
+        { label: 'Tong Doanh thu:', value: formatCurrency(analytics.totalRevenue) },
+        { label: 'Tong Don hang:', value: analytics.totalOrders.toLocaleString() },
+        { label: 'Gia tri TB Don hang:', value: formatCurrency(analytics.averageOrderValue) },
+        { label: 'Tong Khach hang:', value: analytics.totalCustomers.toLocaleString() }
+      ];
+      
+      summaryData.forEach(item => {
+        doc.text(item.label, margin + 5, yPosition);
+        doc.text(item.value, margin + 60, yPosition);
+        yPosition += 7;
+      });
+      
+      yPosition += 10;
+      
+      // Add line separator
+      doc.line(margin, yPosition, pageWidth - margin, yPosition);
+      yPosition += 10;
+      
+      // Add top products section with better formatting
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('TOP SAN PHAM BAN CHAY:', margin, yPosition);
+      yPosition += 10;
+      
+      if (topProducts.length === 0) {
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Khong co du lieu san pham', margin, yPosition);
+      } else {
+        topProducts.forEach((product, index) => {
+          // Check if we need a new page
+          if (yPosition > 250) {
+            doc.addPage();
+            yPosition = margin;
+          }
+          
+          doc.setFontSize(12);
+          doc.setFont('helvetica', 'bold');
+          doc.text(`${index + 1}. ${product.name}`, margin, yPosition);
+          yPosition += 6;
+          
+          doc.setFont('helvetica', 'normal');
+          doc.text(`Thuong hieu: ${product.brand}`, margin + 5, yPosition);
+          doc.text(`Da ban: ${product.sales} san pham`, margin + 5, yPosition + 6);
+          doc.text(`Doanh thu: ${formatCurrency(product.revenue)}`, margin + 5, yPosition + 12);
+          yPosition += 20;
+        });
+      }
+      
+      // Add footer
+      const totalPages = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Trang ${i} / ${totalPages}`, pageWidth - 30, doc.internal.pageSize.getHeight() - 10);
+        doc.text(`Ngay xuat: ${new Date().toLocaleDateString('vi-VN')}`, margin, doc.internal.pageSize.getHeight() - 10);
+      }
+      
+      // Save PDF with error handling
+      try {
+        doc.save(`bao-cao-phan-tich-ban-hang-${timeRange}.pdf`);
+        toast.success('Xuất báo cáo PDF thành công!');
+      } catch (saveError) {
+        console.error('Save error:', saveError);
+        toast.error('Lỗi khi lưu file PDF, vui lòng thử lại');
+      }
+      
+    } catch (error) {
+      console.error('PDF Export error:', error);
+      toast.error('Lỗi khi tạo báo cáo PDF: ' + error.message);
+    }
   };
 
   if (loading || !analytics) {

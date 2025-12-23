@@ -11,7 +11,8 @@ import {
   LuShoppingCart,
   LuTrendingUp,
   LuBoxes,
-  LuTag
+  LuTag,
+  LuMenu
 } from "react-icons/lu";
 import { useAuthStore } from "../lib/auth";
 import InventoryManagement from "./components/InventoryManagement";
@@ -24,6 +25,7 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuthStore();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Extract active tab from URL path
   const getActiveTab = () => {
@@ -35,11 +37,33 @@ export default function AdminDashboard() {
 
   const handleNavigation = (path) => {
     navigate(`/admin/${path}`);
+    setIsMobileMenuOpen(false);
+  };
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
   const handleLogout = () => {
     logout();
     navigate("/login");
+  };
+
+  const getCurrentTabLabel = () => {
+    switch (activeTab) {
+      case "dashboard":
+        return { label: "Dashboard", icon: <LuLayoutDashboard size={20} /> };
+      case "inventory":
+        return { label: "Quản lý Tồn kho", icon: <LuBoxes size={20} /> };
+      case "discount":
+        return { label: "Chỉnh sửa Discount", icon: <LuPercent size={20} /> };
+      case "add-product":
+        return { label: "Thêm Sản phẩm", icon: <LuPlus size={20} /> };
+      case "analytics":
+        return { label: "Phân tích Bán hàng", icon: <LuChartBar size={20} /> };
+      default:
+        return { label: "Dashboard", icon: <LuLayoutDashboard size={20} /> };
+    }
   };
 
   const renderContent = () => {
@@ -59,6 +83,61 @@ export default function AdminDashboard() {
 
   return (
     <div className="admin-dashboard">
+      {/* Compact Mobile Navigation */}
+      <div className="mobile-nav-compact">
+        <div className="mobile-nav-current" onClick={toggleMobileMenu}>
+          <div className="mobile-nav-label">
+            {getCurrentTabLabel().icon}
+            {getCurrentTabLabel().label}
+          </div>
+          <LuMenu size={20} />
+        </div>
+        
+        <div className={`mobile-nav-expanded ${isMobileMenuOpen ? 'show' : ''}`}>
+          <button
+            className={`nav-item ${activeTab === "dashboard" ? "active" : ""}`}
+            onClick={() => handleNavigation("dashboard")}
+          >
+            <LuLayoutDashboard size={20} />
+            Dashboard
+          </button>
+          <button
+            className={`nav-item ${activeTab === "inventory" ? "active" : ""}`}
+            onClick={() => handleNavigation("inventory")}
+          >
+            <LuBoxes size={20} />
+            Quản lý Tồn kho
+          </button>
+          <button
+            className={`nav-item ${activeTab === "discount" ? "active" : ""}`}
+            onClick={() => handleNavigation("discount")}
+          >
+            <LuPercent size={20} />
+            Chỉnh sửa Discount
+          </button>
+          <button
+            className={`nav-item ${activeTab === "add-product" ? "active" : ""}`}
+            onClick={() => handleNavigation("add-product")}
+          >
+            <LuPlus size={20} />
+            Thêm Sản phẩm
+          </button>
+          <button
+            className={`nav-item ${activeTab === "analytics" ? "active" : ""}`}
+            onClick={() => handleNavigation("analytics")}
+          >
+            <LuChartBar size={20} />
+            Phân tích Bán hàng
+          </button>
+          <div className="admin-logout">
+            <button onClick={handleLogout} className="ad-logout-btn">
+              <LuLogOut size={18} />
+              Logout
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Sidebar */}
       <div className="admin-sidebar">
         <div className="admin-header">

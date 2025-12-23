@@ -25,8 +25,8 @@ export default function ProductCard({ laptop }) {
         if (data.success && data.data) {
           const laptopId = laptop._id || laptop.id;
           
-          // Find applicable discount for this laptop
-          const applicableDiscount = data.data.find(d => {
+          // Find applicable discounts for this laptop
+          const applicableDiscounts = data.data.filter(d => {
             if (d.applicableTo === 'all') {
               return true;
             } else if (d.applicableTo === 'specific') {
@@ -36,22 +36,33 @@ export default function ProductCard({ laptop }) {
             return false;
           });
           
-          if (applicableDiscount) {
-            setDiscount(applicableDiscount);
+          // Get the latest discount (most recently created/updated)
+          let latestDiscount = null;
+          if (applicableDiscounts.length > 0) {
+            // Sort by createdAt or updatedAt date, fallback to id if no dates available
+            latestDiscount = applicableDiscounts.sort((a, b) => {
+              const dateA = new Date(a.updatedAt || a.createdAt || 0);
+              const dateB = new Date(b.updatedAt || b.createdAt || 0);
+              return dateB - dateA; // Sort descending (newest first)
+            })[0];
+          }
+          
+          if (latestDiscount) {
+            setDiscount(latestDiscount);
             
             // Calculate final price after discount
             let discountedPrice = laptop.price;
-            if (applicableDiscount.type === 'percentage') {
-              discountedPrice = laptop.price * (1 - applicableDiscount.value / 100);
-              if (applicableDiscount.maxDiscount > 0) {
-                const maxDiscountAmount = laptop.price * (applicableDiscount.maxDiscount / 100);
+            if (latestDiscount.type === 'percentage') {
+              discountedPrice = laptop.price * (1 - latestDiscount.value / 100);
+              if (latestDiscount.maxDiscount > 0) {
+                const maxDiscountAmount = laptop.price * (latestDiscount.maxDiscount / 100);
                 const discountAmount = laptop.price - discountedPrice;
                 if (discountAmount > maxDiscountAmount) {
                   discountedPrice = laptop.price - maxDiscountAmount;
                 }
               }
-            } else if (applicableDiscount.type === 'fixed') {
-              discountedPrice = Math.max(0, laptop.price - applicableDiscount.value);
+            } else if (latestDiscount.type === 'fixed') {
+              discountedPrice = Math.max(0, laptop.price - latestDiscount.value);
             }
             
             setFinalPrice(Math.round(discountedPrice * 100) / 100);
@@ -88,7 +99,7 @@ export default function ProductCard({ laptop }) {
           src={laptop.image}
           alt={laptop.name}
           className="product-image"
-          onClick={() => navigate(`/products/${laptop._id || laptop.id}`)}
+          onClick={() => navigate(`/user/product/${laptop._id || laptop.id}`)}
         />
         {discount && (
           <div className="product-badge discount">
@@ -118,7 +129,7 @@ export default function ProductCard({ laptop }) {
 
         <h3
           className="product-title"
-          onClick={() => navigate(`/products/${laptop._id || laptop.id}`)}
+          onClick={() => navigate(`/user/product/${laptop._id || laptop.id}`)}
         >
           {laptop.name}
         </h3>

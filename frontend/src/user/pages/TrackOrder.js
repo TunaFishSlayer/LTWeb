@@ -182,7 +182,7 @@ export default function TrackOrder() {
       <div className="tracking-not-found">
         <h2>Order Not Found</h2>
         <p>We couldn't find an order with that ID.</p>
-        <Link to="/orders" className="btn btn-primary">
+        <Link to="/user/orders" className="btn btn-primary">
           Back to Order History
         </Link>
       </div>
@@ -252,10 +252,10 @@ export default function TrackOrder() {
       </div>
 
       <div className="order-actions">
-        <Link to="/orders" className="btn btn-outline">
+        <Link to="/user/orders" className="btn btn-outline">
           Back to Orders
         </Link>
-        <Link to="/products" className="btn btn-primary">
+        <Link to="/user/products" className="btn btn-primary">
           Continue Shopping
         </Link>
       </div>
