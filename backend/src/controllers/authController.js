@@ -225,20 +225,3 @@ export const resetPassword = async (req, res) => {
     });
   }
 };
-
-// GET /api/auth/me
-export const getProfile = async (req, res) => {
-  try {
-    const userId = req.user.userId;
-
-    const user = await UserService.getUserById(userId);
-    logger.info("Fetched profile for userId: " + userId);
-
-    return res.status(200).json({ user });
-  } catch (error) {
-    logger.warn("Get profile error: " + error.message);
-    return res.status(401).json({
-      message: "Unauthorized"
-    });
-  }
-};

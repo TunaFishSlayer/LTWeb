@@ -5,8 +5,7 @@ import {
   loginGoogle,
   forgotPassword,
   resetPassword,
-  getProfile
-} from "../controllers/AuthController.js";
+} from "../controllers/authController.js";
 import { testEmail } from "../controllers/testController.js";
 import { validateRegister, validateLogin } from "../middlewares/validateAuth.js";
 import authMiddleware from "../middlewares/authMiddleware.js";
@@ -19,6 +18,5 @@ router.post("/google", loginGoogle);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 router.get("/test-email", testEmail);
-router.get("/me", authMiddleware, getProfile);
 
 export default router;

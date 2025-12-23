@@ -46,7 +46,7 @@ class UserService {
         return user;
     }
 
-    static async getUserbyEmail(email) {
+    static async getUserByEmail(email) {
         const user = await User.findOne({email}).select('-passwordHash');
         if (!user) {
             throw new Error("User not found");
