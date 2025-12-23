@@ -1,6 +1,7 @@
 import UserService from "../services/userService.js";
 import logger from "../utils/logger.js";
 
+
 // USER GET users/me
 export const getProfile = async (req, res) => {
   try {
@@ -137,6 +138,26 @@ export const updateUserByAdmin = async (req, res) => {
     logger.error("Error in updateUserByAdmin: " + error.message);
     const statusCode = error.message === "User not found" ? 404 : 500;
     return res.status(statusCode).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+export const updatePassword = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { oldPassword, newPassword } = req.body;
+    await UserService.updatePassword(userId, oldPassword, newPassword);
+    
+    logger.info(`User ${userId} updated their password`);
+    return res.status(200).json({
+      success: true,
+      message: "Password updated successfully"
+    });
+  } catch (error) {
+    logger.error("Error in updatePassword: " + error.message);
+    return res.status(400).json({
       success: false,
       message: error.message
     });

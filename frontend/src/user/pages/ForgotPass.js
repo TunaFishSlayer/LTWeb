@@ -6,7 +6,7 @@ import "../styles/ForgotPass.css";
 const API_BASE = "/api";
 
 const apiForgotPassword = async (email) => {
-  const response = await fetch(`${API_BASE}/auth/forgot-password`, {
+  const response = await fetch(`${API_BASE}/auth/request-reset-password`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

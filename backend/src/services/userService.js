@@ -1,5 +1,6 @@
 import {hashPassword, comparePassword} from "../utils/hash.js";
 import User from "../models/User.js";
+import { generateResetCode, expiredResetCode } from "../utils/generator.js";
 
 class UserService {
     static async registerUser({email, password, name}) {
@@ -54,56 +55,6 @@ class UserService {
         return user;
     }
 
-    static async findUserByEmail(email) {
-        const user = await User.findOne({email}).select('-passwordHash');
-        return user; // Returns null if user not found, doesn't throw error
-    }
-
-    static async setPasswordResetToken(email, resetToken, resetExpires) {
-        const user = await User.findOneAndUpdate(
-            { email },
-            { 
-                passwordResetToken: resetToken,
-                passwordResetExpires: resetExpires
-            },
-            { new: true }
-        ).select('-passwordHash');
-        
-        if (!user) {
-            throw new Error("User not found");
-        }
-        
-        return user;
-    }
-
-    static async findUserByResetToken(tokenHash) {
-        const user = await User.findOne({
-            passwordResetToken: tokenHash,
-            passwordResetExpires: { $gt: new Date() }
-        }).select('-passwordHash');
-        
-        return user; // Returns null if not found or expired
-    }
-
-    static async updatePassword(userId, newPassword) {
-        const passwordHash = await hashPassword(newPassword);
-        const user = await User.findByIdAndUpdate(
-            userId,
-            { 
-                passwordHash: passwordHash,
-                passwordResetToken: undefined,
-                passwordResetExpires: undefined
-            },
-            { new: true }
-        ).select('-passwordHash');
-        
-        if (!user) {
-            throw new Error("User not found");
-        }
-        
-        return user;
-    }
-
     static async getAllUsers() {
         const users = await User.find().select('-passwordHash');
         return users;
@@ -122,6 +73,52 @@ class UserService {
         if (!user) {
             throw new Error("User not found");
         }
+        return user;
+    }
+
+    static async updatePassword(userId, oldPassword, newPassword) {
+        const user = await User.findById(userId);
+        if(!user) {
+            throw new Error("User not found");
+        }
+        const isMatch = await comparePassword(oldPassword, user.passwordHash);
+        if (!isMatch) {
+            throw new Error("Old password is incorrect");
+        }
+        const newHashedPassword = await hashPassword(newPassword);
+        user.passwordHash = newHashedPassword;
+        await user.save();
+        return user;
+    }
+
+    static async requestResetPassword(email) {
+        const user = await User.findOne({email});
+        if (!user) {
+            return null;
+        }
+        user.resetCode = generateResetCode();
+        user.resetCodeExpiry = expiredResetCode();
+        await user.save();
+        return user.resetCode;
+    }
+
+    static async resetPassword(email, code, newPassword) {
+        const user = await User.findOne({email: email, resetCode: code});
+        if (!user) {
+            throw new Error("Invalid reset code");
+        }
+        const now = new Date();
+        if (!user.resetCodeExpiry || user.resetCodeExpiry <= now) {
+            user.resetCode = null;
+            user.resetCodeExpiry = null;
+            await user.save();
+            throw new Error("Reset code has expired");
+        }
+        const newHashedPassword = await hashPassword(newPassword);
+        user.passwordHash = newHashedPassword;
+        user.resetCode = null;
+        user.resetCodeExpiry = null;
+        await user.save();
         return user;
     }
 }
