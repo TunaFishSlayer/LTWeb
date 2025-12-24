@@ -15,6 +15,10 @@ export default function OrderHistory() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showRefundModal, setShowRefundModal] = useState(false);
+  const [isProcessingAction, setIsProcessingAction] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -26,7 +30,7 @@ export default function OrderHistory() {
         }
 
         // Fetch orders from backend API
-        const response = await fetch(`${API_BASE}/orders/my`, {
+        const response = await fetch(`${API_BASE}/orders/my-orders`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -165,12 +169,99 @@ export default function OrderHistory() {
 
   const getStatusBadgeClass = (status) => {
     const statusMap = {
+      'pending': 'pending',
+      'paid': 'paid',
       'processing': 'processing',
       'shipped': 'shipped',
       'delivered': 'delivered',
       'cancelled': 'cancelled'
     };
-    return statusMap[status.toLowerCase()] || 'processing';
+    return statusMap[status.toLowerCase()] || 'pending';
+  };
+
+  const handleCancelOrder = async () => {
+    if (!selectedOrder) return;
+    
+    setIsProcessingAction(true);
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      const response = await fetch(`${API_BASE}/orders/${selectedOrder.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || 'Failed to cancel order');
+      }
+
+      // Remove order from the list entirely
+      setOrders(prevOrders => 
+        prevOrders.filter(order => order.id !== selectedOrder.id)
+      );
+      
+      setShowCancelModal(false);
+      setSelectedOrder(null);
+      toast.success('Order cancelled successfully!');
+    } catch (error) {
+      console.error('Cancel error:', error);
+      toast.error(error.message || 'Failed to cancel order');
+    } finally {
+      setIsProcessingAction(false);
+    }
+  };
+
+  const handleRefundOrder = async () => {
+    if (!selectedOrder) return;
+    
+    setIsProcessingAction(true);
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      const response = await fetch(`${API_BASE}/orders/${selectedOrder.id}/refund`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || 'Failed to process refund');
+      }
+
+      // Update order status locally
+      setOrders(prevOrders => 
+        prevOrders.map(order => 
+          order.id === selectedOrder.id 
+            ? { ...order, status: 'cancelled' }
+            : order
+        )
+      );
+      
+      setShowRefundModal(false);
+      setSelectedOrder(null);
+      toast.success('Refund processed successfully!');
+    } catch (error) {
+      console.error('Refund error:', error);
+      toast.error(error.message || 'Failed to process refund');
+    } finally {
+      setIsProcessingAction(false);
+    }
   };
 
   return (
@@ -252,6 +343,28 @@ export default function OrderHistory() {
             </div>
 
             <div className="order-actions">
+              {order.status?.toLowerCase() === 'pending' && (
+                <button 
+                  className="btn btn-danger"
+                  onClick={() => {
+                    setSelectedOrder(order);
+                    setShowCancelModal(true);
+                  }}
+                >
+                  Cancel Order
+                </button>
+              )}
+              {order.status?.toLowerCase() === 'paid' && (
+                <button 
+                  className="btn btn-warning"
+                  onClick={() => {
+                    setSelectedOrder(order);
+                    setShowRefundModal(true);
+                  }}
+                >
+                  Request Refund
+                </button>
+              )}
               {order.status?.toLowerCase() !== 'cancelled' && (
                 <button 
                   className="btn btn-outline"
@@ -267,6 +380,100 @@ export default function OrderHistory() {
           </div>
         ))}
       </div>
+
+      {/* Cancel Order Modal */}
+      {showCancelModal && selectedOrder && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <div className="modal-header">
+              <h3>Cancel Order</h3>
+              <button 
+                className="close-btn"
+                onClick={() => {
+                  setShowCancelModal(false);
+                  setSelectedOrder(null);
+                }}
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="modal-content">
+              <p>Are you sure you want to cancel this order?</p>
+              <p><strong>Order ID:</strong> {selectedOrder.id || selectedOrder._id}</p>
+              <p><strong>Total Amount:</strong> {formatPrice(selectedOrder.total)}</p>
+              <p className="warning-text">This action cannot be undone.</p>
+            </div>
+
+            <div className="modal-actions">
+              <button 
+                className="btn btn-outline"
+                onClick={() => {
+                  setShowCancelModal(false);
+                  setSelectedOrder(null);
+                }}
+                disabled={isProcessingAction}
+              >
+                Keep Order
+              </button>
+              <button 
+                className="btn btn-danger"
+                onClick={handleCancelOrder}
+                disabled={isProcessingAction}
+              >
+                {isProcessingAction ? 'Cancelling...' : 'Cancel Order'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Refund Order Modal */}
+      {showRefundModal && selectedOrder && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <div className="modal-header">
+              <h3>Request Refund</h3>
+              <button 
+                className="close-btn"
+                onClick={() => {
+                  setShowRefundModal(false);
+                  setSelectedOrder(null);
+                }}
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="modal-content">
+              <p>Are you sure you want to request a refund for this order?</p>
+              <p><strong>Order ID:</strong> {selectedOrder.id || selectedOrder._id}</p>
+              <p><strong>Refund Amount:</strong> {formatPrice(selectedOrder.total)}</p>
+              <p className="info-text">Refunds will be processed within 5-7 business days.</p>
+            </div>
+
+            <div className="modal-actions">
+              <button 
+                className="btn btn-outline"
+                onClick={() => {
+                  setShowRefundModal(false);
+                  setSelectedOrder(null);
+                }}
+                disabled={isProcessingAction}
+              >
+                Keep Order
+              </button>
+              <button 
+                className="btn btn-warning"
+                onClick={handleRefundOrder}
+                disabled={isProcessingAction}
+              >
+                {isProcessingAction ? 'Processing...' : 'Request Refund'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

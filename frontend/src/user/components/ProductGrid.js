@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { LuSearch } from "react-icons/lu";
 import ProductCard from "./ProductCard";
 import "./ProductGrid.css";
 
@@ -8,6 +9,7 @@ export default function ProductGrid() {
   const [selectedBrand, setSelectedBrand] = useState("All");
   const [priceRange, setPriceRange] = useState([0, 3000]);
   const [sortBy, setSortBy] = useState("name");
+  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -48,7 +50,10 @@ export default function ProductGrid() {
     .filter((laptop) => {
       const brandMatch = selectedBrand === "All" || laptop.brand === selectedBrand;
       const priceMatch = laptop.price >= priceRange[0] && laptop.price <= priceRange[1];
-      return brandMatch && priceMatch;
+      const searchMatch = searchTerm === "" || 
+        laptop.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        laptop.brand.toLowerCase().includes(searchTerm.toLowerCase());
+      return brandMatch && priceMatch && searchMatch;
     })
     .sort((a, b) => {
       switch (sortBy) {
@@ -77,7 +82,6 @@ export default function ProductGrid() {
 
   return (
     <div className="product-grid-container">
-      {/* Sidebar */}
       <div className="sidebar">
         <div className="filter-card">
           <div className="filter-header">
@@ -127,6 +131,15 @@ export default function ProductGrid() {
       <div className="products-section">
         <div className="products-header">
           <h2>Laptops ({filteredLaptops.length} products)</h2>
+          <div className="search-bar">
+            <input 
+              type="text" 
+              placeholder="Search laptops..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <span className="search-icon"><LuSearch/></span>
+          </div>
           <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
             <option value="name">Name</option>
             <option value="price-low">Price: Low to High</option>

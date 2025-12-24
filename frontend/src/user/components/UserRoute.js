@@ -9,6 +9,7 @@ import ProductDetail from '../pages/ProductDetail';
 import ProductComparison from '../pages/ProductComparison';
 import AboutUs from '../pages/AboutUs';
 import Contact from '../pages/Contact';
+import Profile from '../pages/Profile';
 
 
 export default function ProtectedRoute() {
@@ -35,6 +36,7 @@ export default function ProtectedRoute() {
       <Route path="/checkout" element={<Checkout />} />
       <Route path="/orders" element={<OrderHistory />} />
       <Route path="/track-order/:orderId" element={<TrackOrder />} />
+      <Route path="/profile" element={<Profile />} />
       <Route path="*" element={<Navigate to="/user/home" replace />} />
     </Routes>
   );

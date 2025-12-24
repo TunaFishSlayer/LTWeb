@@ -91,7 +91,6 @@ export const useCartStore = create(
   // Clear cart from both state and localStorage
   clearCart: () => {
     set({ items: [] });
-    localStorage.removeItem(CART_STORAGE_KEY);
   }
 }), 
 {

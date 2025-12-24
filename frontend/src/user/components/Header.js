@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useCartStore } from '../../lib/cart';
 import { useAuthStore } from '../../lib/auth';
 import './Header.css';
-import { LuSearch, LuShoppingCart, LuMenu, LuUser } from "react-icons/lu";
+import { LuShoppingCart, LuMenu, LuUser } from "react-icons/lu";
 
 export default function Header() {
   const { toggleCart, getTotalItems } = useCartStore();
@@ -12,6 +12,7 @@ export default function Header() {
   const navigate = useNavigate();
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
   // Helper function to get the correct path based on authentication
   const getPath = (path) => {
@@ -46,11 +47,19 @@ export default function Header() {
     navigate(getPath('/home'));
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
+  // Toggle user dropdown
+  const toggleUserDropdown = () => {
+    setUserDropdownOpen(!userDropdownOpen);
   };
 
+  // Handle logout
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+    setUserDropdownOpen(false);
+  };
+
+  
   return (
     <header className="header">
       <div className="header-container">
@@ -69,13 +78,7 @@ export default function Header() {
             <Link to={getPath('/contact')} onClick={() => setMenuOpen(false)}>Contact</Link>
           </nav>
         </div>
-
-        {/* Search */}
-        <div className="search-bar">
-          <input type="text" placeholder="Search laptops..." />
-          <span className="search-icon"><LuSearch/></span>
-        </div>
-
+    
         {/* User actions */}
         <div className="header-right">
           <button className="icon-btn cart-btn" onClick={toggleCart}>
@@ -85,28 +88,33 @@ export default function Header() {
 
           {isAuthenticated ? (
             <div className="user-dropdown"> 
-              <button className="icon-btn user-btn">
+              <button className="icon-btn user-btn" onClick={toggleUserDropdown}>
                 <LuUser />
               </button>
-              <div className="dropdown-content">
-                <div className="dropdown-user">
-                  <div className="user-avatar">
-                    {getUserInitial()}
+              {userDropdownOpen && (
+                <div className="dropdown-content">
+                  <div className="dropdown-user">
+                    <div className="user-avatar">
+                      {getUserInitial()}
+                    </div>
+                    <div className="user-info clickable" onClick={() => {
+                      setUserDropdownOpen(false);
+                      navigate('/user/profile');
+                    }}>
+                      <div className="user-name">{getUserName()}</div>
+                      <div className="user-email">{user?.email}</div>
+                    </div>
                   </div>
-                  <div className="user-info">
-                    <div className="user-name">{getUserName()}</div>
-                    <div className="user-email">{user?.email}</div>
+                  <div className="dropdown-actions">
+                    <Link to={getPath('/orders')} className="dropdown-link" onClick={() => setUserDropdownOpen(false)}>
+                      <span>My Orders</span>
+                    </Link>
+                    <button onClick={handleLogout} className="logout-btn">
+                      <span>Sign Out</span>
+                    </button>
                   </div>
                 </div>
-                <div className="dropdown-actions">
-                  <Link to={getPath('/orders')} className="dropdown-link">
-                    <span>My Orders</span>
-                  </Link>
-                  <button onClick={handleLogout} className="logout-btn">
-                    <span>Sign Out</span>
-                  </button>
-                </div>
-              </div>
+              )}
             </div>
           ) : (
             <Link to="/login" className="icon-btn"><LuUser /></Link>

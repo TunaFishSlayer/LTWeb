@@ -9,7 +9,6 @@ export default function CartSidebar() {
     items,
     isOpen,
     toggleCart,
-    removeItem,
     updateQuantity,
     getTotalPrice,
     clearCart,
@@ -96,11 +95,6 @@ export default function CartSidebar() {
                           +
                         </button>
                       </div>
-                      <button
-                        className="remove-btn"
-                        onClick={() => removeItem(laptopId)}
-                      >
-                      </button>
                     </div>
                   </div>
                 </div>

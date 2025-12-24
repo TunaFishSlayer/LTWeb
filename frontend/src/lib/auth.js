@@ -19,9 +19,9 @@ const handleTabClose = (event) => {
     }
     
     // Alternative check for older browsers
-    if (window.performance && window.performance.navigation) {
-      const navigationType = window.performance.navigation.type;
-      if (navigationType === 1) { // 1 = TYPE_RELOAD
+    if (window.performance && window.performance.getEntriesByType) {
+      const navigationType = window.performance.getEntriesByType('navigation')[0].type;
+      if (navigationType === 'reload') {
         isPageRefresh = true;
         return;
       }
@@ -31,8 +31,8 @@ const handleTabClose = (event) => {
   // Only clear auth data if this is not a page refresh
   if (!isPageRefresh) {
     localStorage.removeItem('auth-storage');
-    localStorage.removeItem('taplop_cart');
     localStorage.removeItem('token');
+    // Preserve cart data across sessions
   }
 };
 
@@ -48,13 +48,21 @@ export const useAuthStore = create(
       user: null,
       isAuthenticated: false,
 
-      login: (user) => {
+      login: (user, token) => {
+        // Save token to localStorage
+        if (token) {
+          localStorage.setItem('token', token);
+        }
         // Set user from backend API response
         set({ user, isAuthenticated: true });
         return { success: true, user };
       },
 
-      signup: (user) => {
+      signup: (user, token) => {
+        // Save token to localStorage
+        if (token) {
+          localStorage.setItem('token', token);
+        }
         // Set user from backend API response
         set({ user, isAuthenticated: true });
         return { success: true, user };
@@ -62,9 +70,9 @@ export const useAuthStore = create(
 
       logout: () => {
         set({ user: null, isAuthenticated: false });
-        // Clear cart when user logs out
-        localStorage.removeItem('taplop_cart');
+        // Clear auth data but preserve cart
         localStorage.removeItem('token');
+        localStorage.removeItem('auth-storage');
       },
 
       // Helper methods for role-based access

@@ -114,6 +114,8 @@ export default function Checkout() {
     nameOnCard: '',
   });
 
+  const [paymentMethod, setPaymentMethod] = useState('card');
+
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
     setError('');
@@ -152,7 +154,23 @@ export default function Checkout() {
             state: billingInfo.state,
             zipCode: billingInfo.zipCode,
             country: billingInfo.country
-          }
+          },
+          billingAddress: {
+            firstName: billingInfo.firstName,
+            lastName: billingInfo.lastName,
+            email: billingInfo.email,
+            phone: billingInfo.phone,
+            address: billingInfo.address,
+            city: billingInfo.city,
+            state: billingInfo.state,
+            zipCode: billingInfo.zipCode,
+            country: billingInfo.country
+          },
+          paymentMethod: paymentMethod,
+          paymentInfo: paymentMethod === 'card' ? {
+            cardNumber: paymentInfo.cardNumber.slice(-4), // Only send last 4 digits
+            nameOnCard: paymentInfo.nameOnCard
+          } : null
         })
       });
 
@@ -256,6 +274,32 @@ export default function Checkout() {
           </div>
 
           <h2>Payment Information</h2>
+          <div className="payment-methods">
+            <label className="payment-method">
+              <input
+                type="radio"
+                name="paymentMethod"
+                value="card"
+                checked={paymentMethod === 'card'}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+              />
+              <span>Credit/Debit Card</span>
+            </label>
+            <label className="payment-method">
+              <input
+                type="radio"
+                name="paymentMethod"
+                value="cod"
+                checked={paymentMethod === 'cod'}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+              />
+              <span>Cash on Delivery</span>
+            </label>
+          </div>
+
+          {paymentMethod === 'card' && (
+            <>
+              <h3>Card Details</h3>
           <input
             placeholder="Card Number"
             value={paymentInfo.cardNumber}
@@ -282,6 +326,15 @@ export default function Checkout() {
               required
             />
           </div>
+            </>
+          )}
+
+          {paymentMethod === 'cod' && (
+            <div className="cod-message">
+              <p>You will pay cash when your order is delivered.</p>
+              <p>Payment amount: ${finalTotal.toFixed(2)}</p>
+            </div>
+          )}
 
           {error && <div className="error-message" style={{ color: 'red', marginBottom: '1rem' }}>{error}</div>}
           <button type="submit" disabled={isProcessing}>

@@ -54,13 +54,13 @@ export default function AdminDashboard() {
       case "dashboard":
         return { label: "Dashboard", icon: <LuLayoutDashboard size={20} /> };
       case "inventory":
-        return { label: "Quản lý Tồn kho", icon: <LuBoxes size={20} /> };
+        return { label: "Inventory Management", icon: <LuBoxes size={20} /> };
       case "discount":
-        return { label: "Chỉnh sửa Discount", icon: <LuPercent size={20} /> };
+        return { label: "Discount Management", icon: <LuPercent size={20} /> };
       case "add-product":
-        return { label: "Thêm Sản phẩm", icon: <LuPlus size={20} /> };
+        return { label: "Add Product", icon: <LuPlus size={20} /> };
       case "analytics":
-        return { label: "Phân tích Bán hàng", icon: <LuChartBar size={20} /> };
+        return { label: "Sales Analytics", icon: <LuChartBar size={20} /> };
       default:
         return { label: "Dashboard", icon: <LuLayoutDashboard size={20} /> };
     }
@@ -106,28 +106,28 @@ export default function AdminDashboard() {
             onClick={() => handleNavigation("inventory")}
           >
             <LuBoxes size={20} />
-            Quản lý Tồn kho
+            Inventory Management
           </button>
           <button
             className={`nav-item ${activeTab === "discount" ? "active" : ""}`}
             onClick={() => handleNavigation("discount")}
           >
             <LuPercent size={20} />
-            Chỉnh sửa Discount
+            Discount Management
           </button>
           <button
             className={`nav-item ${activeTab === "add-product" ? "active" : ""}`}
             onClick={() => handleNavigation("add-product")}
           >
             <LuPlus size={20} />
-            Thêm Sản phẩm
+            Add Product
           </button>
           <button
             className={`nav-item ${activeTab === "analytics" ? "active" : ""}`}
             onClick={() => handleNavigation("analytics")}
           >
             <LuChartBar size={20} />
-            Phân tích Bán hàng
+            Sales Analytics
           </button>
           <div className="admin-logout">
             <button onClick={handleLogout} className="ad-logout-btn">
@@ -163,28 +163,28 @@ export default function AdminDashboard() {
             onClick={() => handleNavigation("inventory")}
           >
             <LuBoxes size={20} />
-            Quản lý Tồn kho
+            Inventory Management
           </button>
           <button
             className={`nav-item ${activeTab === "discount" ? "active" : ""}`}
             onClick={() => handleNavigation("discount")}
           >
             <LuPercent size={20} />
-            Chỉnh sửa Discount
+            Discount Management
           </button>
           <button
             className={`nav-item ${activeTab === "add-product" ? "active" : ""}`}
             onClick={() => handleNavigation("add-product")}
           >
             <LuPlus size={20} />
-            Thêm Sản phẩm
+            Add Product
           </button>
           <button
             className={`nav-item ${activeTab === "analytics" ? "active" : ""}`}
             onClick={() => handleNavigation("analytics")}
           >
             <LuChartBar size={20} />
-            Phân tích Bán hàng
+            Sales Analytics
           </button>
         </nav>
         
@@ -208,30 +208,30 @@ function DashboardOverview() {
   const navigate = useNavigate();
   const [stats, setStats] = useState([
     {
-      title: "Tổng Doanh thu",
+      title: "Total Revenue",
       value: "$0",
       change: "+0%",
       icon: <LuTrendingUp size={24} />,
       color: "green"
     },
     {
-      title: "Tổng Sản phẩm",
+      title: "Total laptops",
       value: "0",
-      change: "+0 sản phẩm",
+      change: "+0 Laptops",
       icon: <LuPackage size={24} />,
       color: "blue"
     },
     {
-      title: "Đơn hàng",
+      title: "Total Orders",
       value: "0",
-      change: "+0 hôm nay",
+      change: "+0 orders",
       icon: <LuShoppingCart size={24} />,
       color: "purple"
     },
     {
-      title: "Khách hàng",
+      title: "Total Customers",
       value: "0",
-      change: "+0 tuần này",
+      change: "+0 customers",
       icon: <LuUsers size={24} />,
       color: "orange"
     }
@@ -270,28 +270,28 @@ function DashboardOverview() {
           
           setStats([
             {
-              title: "Tổng Doanh thu",
+              title: "Total Revenue",
               value: formatCurrency(analyticsData.data.totalRevenue || 0),
               change: `${analyticsData.data.revenueChange >= 0 ? '+' : ''}${analyticsData.data.revenueChange?.toFixed(1) || 0}%`,
               icon: <LuTrendingUp size={24} />,
               color: "green"
             },
             {
-              title: "Tổng Sản phẩm",
+              title: "Total Laptops",
               value: laptopsData.pagination?.totalItems || 0,
-              change: `+${laptopsData.pagination?.totalItems || 0} sản phẩm`,
+              change: `+${laptopsData.pagination?.totalItems || 0} laptops`,
               icon: <LuPackage size={24} />,
               color: "blue"
             },
             {
-              title: "Đơn hàng",
+              title: "Total Orders",
               value: analyticsData.data.totalOrders || 0,
               change: `+${analyticsData.data.ordersChange?.toFixed(1) || 0}%`,
               icon: <LuShoppingCart size={24} />,
               color: "purple"
             },
             {
-              title: "Khách hàng",
+              title: "Total Customers",
               value: analyticsData.data.totalCustomers || 0,
               change: `+${analyticsData.data.customersChange?.toFixed(1) || 0}%`,
               icon: <LuUsers size={24} />,
@@ -313,7 +313,7 @@ function DashboardOverview() {
     return (
       <div className="dashboard-overview">
         <div className="admin-loading">
-          <p>Đang tải dữ liệu dashboard...</p>
+          <p>Loading dashboard data...</p>
         </div>
       </div>
     );
@@ -341,23 +341,23 @@ function DashboardOverview() {
         <div className="action-grid">
           <div className="action-card" onClick={() => navigate("/admin/inventory")}>
             <LuBoxes size={32} />
-            <h4>Quản lý Tồn kho</h4>
-            <p>Kiểm tra và cập nhật số lượng hàng tồn</p>
+            <h4>Inventory Management</h4>
+            <p>Check and update stock levels</p>
           </div>
           <div className="action-card" onClick={() => navigate("/admin/discount")}>
             <LuTag size={32} />
-            <h4>Quản lý Discount</h4>
-            <p>Tạo và chỉnh sửa các chương trình giảm giá</p>
+            <h4>Discount Management</h4>
+            <p>Create and edit discount programs</p>
           </div>
           <div className="action-card" onClick={() => navigate("/admin/add-product")}>
             <LuPlus size={32} />
-            <h4>Thêm Sản phẩm</h4>
-            <p>Thêm sản phẩm mới vào kho hàng</p>
+            <h4>Add Product</h4>
+            <p>Add new products to inventory</p>
           </div>
           <div className="action-card" onClick={() => navigate("/admin/analytics")}>
             <LuChartBar size={32} />
-            <h4>Xem Phân tích</h4>
-            <p>Xem báo cáo bán hàng và thống kê</p>
+            <h4>Sales Analytics</h4>
+            <p>View sales reports and statistics</p>
           </div>
         </div>
       </div>

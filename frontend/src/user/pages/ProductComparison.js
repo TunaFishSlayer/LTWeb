@@ -280,7 +280,7 @@ export default function ProductComparison() {
             {/* Search Bar */}
             <div className="search-container">
               <div className="search-input-wrapper">
-                <Search size={20} className="search-icon" />
+                <Search size={20} className="search-icon-r" />
                 <input
                   type="text"
                   placeholder="Search by name or brand..."

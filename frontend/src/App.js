@@ -7,7 +7,7 @@ import Contact from './user/pages/Contact';
 import Login from './Login';
 import ProductDetail from './user/pages/ProductDetail';
 import ProductComparison from './user/pages/ProductComparison';
-import ProtectedRoute from './user/components/ProtectedRoute';
+import ProtectedRoute from './user/components/UserRoute';
 import AdminRoute from './admin/components/AdminRoute';
 import ForgotPass from './user/pages/ForgotPass';
 import ResetPass from './user/pages/ResetPass';

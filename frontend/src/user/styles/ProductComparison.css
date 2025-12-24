@@ -323,9 +323,9 @@
   align-items: center;
 }
 
-.search-icon {
+.search-icon-r {
   position: absolute;
-  left: 12px;
+  right: 12px;
   color: #6b7280;
   pointer-events: none;
 }

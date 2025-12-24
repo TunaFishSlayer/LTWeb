@@ -19,7 +19,7 @@
 
 .highlight {
   background: linear-gradient(to right, #2563eb, #9333ea);
-  -webkit-background-clip: text;
+  background-clip: text;
   color: transparent;
 }
 
@@ -77,7 +77,7 @@
 
 .values-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(4, minmax(220px, 1fr));
   gap: 30px;
   max-width: 1100px;
   margin: 0 auto;
@@ -132,7 +132,7 @@
 
 .team-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(4, minmax(220px, 1fr));
   gap: 30px;
   max-width: 900px;
   margin: 0 auto;

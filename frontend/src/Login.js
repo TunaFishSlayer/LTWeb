@@ -91,12 +91,12 @@ export default function Login() {
     
     // Basic validation
     if (!loginForm.email || !loginForm.password) {
-      setError("Vui lòng điền đầy đủ thông tin đăng nhập");
+      setError("Please fill in all fields");
       return;
     }
 
     if (!validateEmail(loginForm.email)) {
-      setError("Email không hợp lệ");
+      setError("Email is invalid");
       return;
     }
 
@@ -122,9 +122,9 @@ export default function Login() {
     } catch (err) {
       // Check if user doesn't exist - suggest registration
       if (err.message === "Invalid email or password") {
-        setError("Email hoặc mật khẩu không đúng. Nếu chưa có tài khoản, hãy đăng ký.");
+        setError("Email or password is incorrect. If you don't have an account, please register.");
       } else {
-        setError(err.message || 'Có lỗi xảy ra khi đăng nhập');
+        setError(err.message || 'Error logging in');
       }
     } finally {
       setLoading(false);
@@ -142,17 +142,17 @@ export default function Login() {
     }
     
     if (!signupForm.firstName || !signupForm.lastName || !signupForm.email || !signupForm.password) {
-      setError("Vui lòng điền đầy đủ thông tin");
+      setError("Please fill in all fields");
       return;
     }
     
     if (!validateEmail(signupForm.email)) {
-      setError("Email không hợp lệ");
+      setError("Email is invalid");
       return;
     }
     
     if (signupForm.password.length < 6) {
-      setError("Mật khẩu phải có ít nhất 6 ký tự");
+      setError("Password must be at least 6 characters");
       return;
     }
 
@@ -174,11 +174,11 @@ export default function Login() {
     } catch (err) {
       // Handle specific error messages
       if (err.message === "Email already in use") {
-        setError("Email đã được sử dụng. Vui lòng chọn email khác hoặc đăng nhập.");
+        setError("Email has been used. Please choose a different email or sign in.");
       } else if (err.message === "Password must be at least 6 characters") {
-        setError("Mật khẩu phải có ít nhất 6 ký tự");
+        setError("Password must be at least 6 characters");
       } else {
-        setError(err.message || 'Có lỗi xảy ra khi tạo tài khoản');
+        setError(err.message || 'Error creating account');
       }
     } finally {
       setLoading(false);
@@ -206,7 +206,7 @@ export default function Login() {
       }
       
     } catch (err) {
-      setError(err.message || 'Đăng nhập bằng Google thất bại');
+      setError(err.message || 'Google login failed');
     } finally {
       setLoading(false);
     }
@@ -272,7 +272,7 @@ export default function Login() {
 
             <div className="forgot-password-link">
               <Link to="/forgot-password" className="forgot-link">
-                Quên mật khẩu?
+                forgot password?
               </Link>
             </div>
 
@@ -282,7 +282,7 @@ export default function Login() {
               className="btn-submit"
               disabled={loading}
             >
-              {loading ? 'Đang xử lý...' : 'Đăng nhập'}
+              {loading ? 'loading...' : 'Login'}
             </button>
 
             <div className="divider">
@@ -293,11 +293,11 @@ export default function Login() {
               <GoogleLogin
                 onSuccess={handleGoogleLogin}
                 onError={() => {
-                  setError('Đăng nhập bằng Google thất bại');
+                  setError('Google login failed');
                 }}
                 disabled={loading}
                 text="signin_with"
-                locale="vi"
+                locale="en"
               />
             </div>
           </form>
@@ -399,16 +399,15 @@ export default function Login() {
             <div className="divider">
               <span>OR</span>
             </div>
-
             <div className="google-login-container">
               <GoogleLogin
                 onSuccess={handleGoogleLogin}
                 onError={() => {
-                  setError('Đăng nhập bằng Google thất bại');
+                  setError('Google login failed');
                 }}
                 disabled={loading}
                 text="signup_with"
-                locale="vi"
+                locale="en"
               />
             </div>
           </form>
@@ -418,7 +417,7 @@ export default function Login() {
               className="btn-back"
               onClick={() => navigate('/')}
             >
-              Về trang chủ
+              Back to Home
             </button>
         <div className="demo-info">
           <p>Demo credentials:</p>

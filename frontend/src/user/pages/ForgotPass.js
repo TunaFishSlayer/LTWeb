@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { LuMail } from "react-icons/lu";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "../styles/ForgotPass.css";
 
 const API_BASE = "/api";
@@ -23,6 +23,7 @@ const apiForgotPassword = async (email) => {
 };
 
 export default function ForgotPass() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -40,29 +41,31 @@ export default function ForgotPass() {
     
     // Validation
     if (!email) {
-      setError("Vui lòng nhập email của bạn");
+      setError("input email please");
       return;
     }
 
     if (!validateEmail(email)) {
-      setError("Email không hợp lệ");
+      setError("Email is not valid");
       return;
     }
 
     try {
       setLoading(true);
       
-      const result = await apiForgotPassword(email);
-      setSuccess("Email khôi phục mật khẩu đã được gửi! Vui lòng kiểm tra hòm thư của bạn.");
+      await apiForgotPassword(email);
+      setSuccess("Email reset password has been sent! Redirecting to reset page...");
       
-      // Clear form after successful submission
-      setEmail("");
+      // Redirect to reset page after 2 seconds
+      setTimeout(() => {
+        navigate(`/reset-password?email=${encodeURIComponent(email)}`);
+      }, 2000);
       
     } catch (err) {
       if (err.message === "User not found") {
-        setError("Email không tồn tại trong hệ thống. Vui lòng kiểm tra lại.");
+        setError("Email not found in the system. Please check again.");
       } else {
-        setError(err.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
+        setError(err.message || 'An error occurred. Please try again.');
       }
     } finally {
       setLoading(false);
@@ -73,9 +76,9 @@ export default function ForgotPass() {
     <div className="forgot-pass-page">
       <div className="forgot-pass-card">
         <div className="forgot-pass-header">
-          <h1 className="forgot-pass-title">Quên Mật Khẩu</h1>
+          <h1 className="forgot-pass-title">Forgot Password</h1>
           <p className="forgot-pass-subtitle">
-            Nhập email của bạn để nhận link khôi phục mật khẩu
+            Enter your email to receive a password reset link
           </p>
         </div>
 
@@ -85,7 +88,7 @@ export default function ForgotPass() {
             <LuMail className="icon-email" />
             <input
               type="email"
-              placeholder="Nhập email của bạn"
+              placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -101,15 +104,15 @@ export default function ForgotPass() {
             className="btn-submit"
             disabled={loading}
           >
-            {loading ? 'Đang gửi...' : 'Gửi Link Khôi Phục'}
+            {loading ? 'Sending...' : 'Send Reset Link'}
           </button>
         </form>
 
         <div className="forgot-pass-footer">
           <p>
-            Nhớ lại mật khẩu?{" "}
+            Forgot password?{" "}
             <Link to="/login" className="login-link">
-              Đăng nhập ngay
+              Login now
             </Link>
           </p>
         </div>

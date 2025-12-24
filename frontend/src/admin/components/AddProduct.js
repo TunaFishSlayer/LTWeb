@@ -69,27 +69,27 @@ export default function AddProduct() {
   const handleSaveProduct = async () => {
     // Validation
     if (!product.name || !product.brand || !product.price) {
-      setNotification("Vui lòng điền đầy đủ thông tin bắt buộc!");
-      toast.error("Vui lòng điền đầy đủ thông tin bắt buộc!");
+      setNotification("Please fill in all required fields!");
+      toast.error("Please fill in all required fields!");
       return;
     }
 
     if (parseFloat(product.price) <= 0) {
-      setNotification("Giá sản phẩm phải lớn hơn 0!");
-      toast.error("Giá sản phẩm phải lớn hơn 0!");
+      setNotification("Price must be greater than 0!");
+      toast.error("Price must be greater than 0!");
       return;
     }
 
     if (!product.image) {
-      setNotification("Vui lòng tải lên hình ảnh sản phẩm!");
-      toast.error("Vui lòng tải lên hình ảnh sản phẩm!");
+      setNotification("Please upload a product image!");
+      toast.error("Please upload a product image!");
       return;
     }
 
     if (!product.specs.processor || !product.specs.ram || !product.specs.storage || 
         !product.specs.graphics || !product.specs.display) {
-      setNotification("Vui lòng điền đầy đủ thông số kỹ thuật!");
-      toast.error("Vui lòng điền đầy đủ thông số kỹ thuật!");
+      setNotification("Please fill in all required technical specifications!");
+      toast.error("Please fill in all required technical specifications!");
       return;
     }
 
@@ -132,7 +132,7 @@ export default function AddProduct() {
         throw new Error(data.message || 'Failed to create product');
       }
 
-      setNotification("Thêm sản phẩm thành công!");
+      setNotification("Product added successfully!");
       toast.success('Product created successfully!');
 
       // Reset form after successful save
@@ -163,7 +163,7 @@ export default function AddProduct() {
       }, 2000);
     } catch (error) {
       console.error('Error creating product:', error);
-      setNotification(error.message || "Có lỗi xảy ra khi thêm sản phẩm!");
+      setNotification(error.message || "Error creating product!");
       toast.error(error.message || 'Failed to create product');
     }
   };
@@ -194,7 +194,7 @@ export default function AddProduct() {
   return (
     <div className="add-product">
       <div className="product-header">
-        <h2>Thêm Sản phẩm Mới</h2>
+        <h2>Add New laptop</h2>
         <div className="header-actions">
           <button onClick={handleReset} className="reset-btn">
             <LuX size={16} />
@@ -202,13 +202,13 @@ export default function AddProduct() {
           </button>
           <button onClick={handleSaveProduct} className="save-btn">
             <LuSave size={16} />
-            Lưu Sản phẩm
+            Save laptop
           </button>
         </div>
       </div>
 
       {notification && (
-        <div className={`notification ${notification.includes("thành công") ? "success" : "error"}`}>
+        <div className={`notification ${notification.includes("success") ? "success" : "error"}`}>
           {notification}
         </div>
       )}
@@ -217,25 +217,25 @@ export default function AddProduct() {
         <div className="form-sections">
           {/* Basic Information */}
           <div className="form-section">
-            <h3>Thông tin cơ bản</h3>
+            <h3>Information</h3>
             <div className="form-grid">
               <div className="form-group">
-                <label>Tên sản phẩm *</label>
+                <label>Product Name *</label>
                 <input
                   type="text"
                   value={product.name}
                   onChange={(e) => handleInputChange("name", e.target.value)}
-                  placeholder="Nhập tên sản phẩm"
+                  placeholder="input laptop name"
                 />
               </div>
 
               <div className="form-group">
-                <label>Thương hiệu *</label>
+                <label>Brand *</label>
                 <select
                   value={product.brand}
                   onChange={(e) => handleInputChange("brand", e.target.value)}
                 >
-                  <option value="">Chọn thương hiệu</option>
+                  <option value="">Select brand</option>
                   {brands.map(brand => (
                     <option key={brand} value={brand}>{brand}</option>
                   ))}
@@ -243,7 +243,7 @@ export default function AddProduct() {
               </div>
 
               <div className="form-group">
-                <label>Giá bán ($) *</label>
+                <label>Price *</label>
                 <input
                   type="number"
                   value={product.price}
@@ -256,7 +256,7 @@ export default function AddProduct() {
               </div>
 
               <div className="form-group">
-                <label>Số lượng tồn kho</label>
+                <label>Stock Quantity</label>
                 <input
                   type="number"
                   value={product.stockQuantity}
@@ -265,25 +265,12 @@ export default function AddProduct() {
                   min="0"
                 />
               </div>
-
-              <div className="form-group">
-                <label>Đánh giá (1-5)</label>
-                <input
-                  type="number"
-                  value={product.rating}
-                  onChange={(e) => handleInputChange("rating", parseFloat(e.target.value) || 0)}
-                  placeholder="0"
-                  min="0"
-                  max="5"
-                  step="0.1"
-                />
-              </div>
             </div>
           </div>
 
           {/* Specifications */}
           <div className="form-section">
-            <h3>Thông số kỹ thuật</h3>
+            <h3>Specifications</h3>
             <div className="form-grid">
               <div className="form-group">
                 <label>CPU</label>
@@ -306,7 +293,7 @@ export default function AddProduct() {
               </div>
 
               <div className="form-group">
-                <label>Ổ cứng</label>
+                <label>Storage</label>
                 <input
                   type="text"
                   value={product.specs.storage}
@@ -316,7 +303,7 @@ export default function AddProduct() {
               </div>
 
               <div className="form-group">
-                <label>Đồ họa</label>
+                <label>Graphics</label>
                 <input
                   type="text"
                   value={product.specs.graphics}
@@ -326,7 +313,7 @@ export default function AddProduct() {
               </div>
 
               <div className="form-group">
-                <label>Màn hình</label>
+                <label>Display</label>
                 <input
                   type="text"
                   value={product.specs.display}
@@ -339,7 +326,7 @@ export default function AddProduct() {
 
           {/* Image Upload */}
           <div className="form-section">
-            <h3>Hình ảnh sản phẩm *</h3>
+            <h3>Image</h3>
             <div className="image-upload">
               <div className="upload-area">
                 {previewImage ? (
@@ -359,7 +346,7 @@ export default function AddProduct() {
                 ) : (
                   <label className="upload-label">
                     <LuUpload size={32} />
-                    <span>Tải lên hình ảnh (Bắt buộc)</span>
+                    <span>Upload image</span>
                     <input
                       type="file"
                       accept="image/*"
@@ -371,12 +358,12 @@ export default function AddProduct() {
                 )}
               </div>
               <div className="image-info">
-                <p><strong>Tải lên hình ảnh sản phẩm (Bắt buộc)</strong></p>
-                <p>Định dạng: JPG, PNG (tối đa 5MB)</p>
-                <p>Kích thước đề xuất: 500x400 pixels</p>
+                <p><strong>Upload image (Required)</strong></p>
+                <p>Format: JPG, PNG (max 5MB)</p>
+                <p>Recommended size: 500x400 pixels</p>
                 {!product.image && (
                   <p style={{ color: '#ef4444', marginTop: '0.5rem' }}>
-                    ⚠ Vui lòng tải lên hình ảnh sản phẩm
+                    ⚠ Please upload a product image
                   </p>
                 )}
               </div>
@@ -385,7 +372,7 @@ export default function AddProduct() {
 
           {/* Additional Settings */}
           <div className="form-section">
-            <h3>Cài đặt bổ sung</h3>
+            <h3>Additional settings</h3>
             <div className="checkbox-group">
               <label className="checkbox-label">
                 <input
@@ -393,7 +380,7 @@ export default function AddProduct() {
                   checked={product.inStock}
                   onChange={(e) => handleInputChange("inStock", e.target.checked)}
                 />
-                Còn hàng
+                In stock
               </label>
               <label className="checkbox-label">
                 <input
@@ -401,16 +388,16 @@ export default function AddProduct() {
                   checked={product.featured}
                   onChange={(e) => handleInputChange("featured", e.target.checked)}
                 />
-                Sản phẩm nổi bật
+                Featured
               </label>
             </div>
 
             <div className="form-group">
-              <label>Mô tả sản phẩm</label>
+              <label>Description</label>
               <textarea
                 value={product.description}
                 onChange={(e) => handleInputChange("description", e.target.value)}
-                placeholder="Nhập mô tả chi tiết về sản phẩm..."
+                placeholder="Enter detailed description about the laptop..."
                 rows={4}
               />
             </div>
@@ -420,18 +407,18 @@ export default function AddProduct() {
 
       {/* Product Preview */}
       <div className="product-preview">
-        <h3>Xem trước sản phẩm</h3>
+        <h3>Laptop Preview</h3>
         <div className="preview-card">
           <div className="preview-image">
             {previewImage ? (
               <img src={previewImage} alt={product.name || "Product preview"} />
             ) : (
-              <div className="no-image">Không có hình ảnh</div>
+              <div className="no-image">No image</div>
             )}
           </div>
           <div className="preview-content">
-            <h4>{product.name || "Tên sản phẩm"}</h4>
-            <p className="preview-brand">{product.brand || "Thương hiệu"}</p>
+            <h4>{product.name || "Laptop name"}</h4>
+            <p className="preview-brand">{product.brand || "Brand"}</p>
             <div className="preview-price">
               <strong>${product.price || "0"}</strong>
             </div>
@@ -442,10 +429,10 @@ export default function AddProduct() {
             </div>
             <div className="preview-status">
               <span className={`status-badge ${product.inStock ? "in-stock" : "out-of-stock"}`}>
-                {product.inStock ? "Còn hàng" : "Hết hàng"}
+                {product.inStock ? "In stock" : "Out of stock"}
               </span>
               {product.featured && (
-                <span className="featured-badge">Nổi bật</span>
+                <span className="featured-badge">Featured</span>
               )}
             </div>
           </div>

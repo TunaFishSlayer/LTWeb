@@ -122,7 +122,7 @@ export default function InventoryManagement() {
         } : item
       ));
       setEditingItem(null);
-      showNotification("Cập nhật sản phẩm thành công!");
+      showNotification("Product updated successfully");
       toast.success('Product updated successfully');
     } catch (error) {
       console.error('Error updating product:', error);
@@ -175,28 +175,28 @@ export default function InventoryManagement() {
   };
 
   const getStockStatus = (quantity, threshold) => {
-    if (quantity === 0) return { status: "out-of-stock", color: "#ef4444", text: "Hết hàng" };
-    if (quantity <= threshold) return { status: "low-stock", color: "#f97316", text: "Sắp hết" };
-    return { status: "in-stock", color: "#10b981", text: "Còn hàng" };
+    if (quantity === 0) return { status: "out-of-stock", color: "#ef4444", text: "Out of stock" };
+    if (quantity <= threshold) return { status: "low-stock", color: "#f97316", text: "Low stock" };
+    return { status: "in-stock", color: "#10b981", text: "In stock" };
   };
 
   return (
     <div className="admin-inventory-management">
       <div className="admin-inventory-header">
-        <h2>Quản lý Tồn kho</h2>
+        <h2>Inventory Management</h2>
         <div className="admin-inventory-stats">
           <div className="admin-stat-item">
-            <span className="admin-stat-label">Tổng sản phẩm:</span>
+            <span className="admin-stat-label">Total products:</span>
             <span className="admin-stat-value">{inventory.length}</span>
           </div>
           <div className="admin-stat-item">
-            <span className="admin-stat-label">Hết hàng:</span>
+            <span className="admin-stat-label">Out of stock:</span>
             <span className="admin-stat-value admin-out">
               {inventory.filter(item => item.stockQuantity === 0).length}
             </span>
           </div>
           <div className="admin-stat-item">
-            <span className="admin-stat-label">Sắp hết:</span>
+            <span className="admin-stat-label">Low stock:</span>
             <span className="admin-stat-value admin-low">
               {inventory.filter(item => item.stockQuantity <= item.lowStockThreshold && item.stockQuantity > 0).length}
             </span>
@@ -206,7 +206,7 @@ export default function InventoryManagement() {
 
       {loading && (
         <div className="admin-loading">
-          <p>Đang tải dữ liệu tồn kho...</p>
+          <p>Loading inventory data...</p>
         </div>
       )}
 
@@ -222,7 +222,7 @@ export default function InventoryManagement() {
           <LuSearch size={20} />
           <input
             type="text"
-            placeholder="Tìm kiếm sản phẩm..."
+            placeholder="Search products..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -231,12 +231,12 @@ export default function InventoryManagement() {
 
       <div className="admin-inventory-table">
         <div className="admin-table-header">
-          <div>Sản phẩm</div>
-          <div>Thương hiệu</div>
-          <div>Tồn kho</div>
-          <div>Ngày nhập</div>
-          <div>Trạng thái</div>
-          <div>Thao tác</div>
+          <div>Laptop</div>
+          <div>Brand</div>
+          <div>Stock</div>
+          <div>Restocked</div>
+          <div>Status</div>
+          <div>Actions</div>
         </div>
 
         <div className="admin-table-body">
@@ -316,7 +316,7 @@ export default function InventoryManagement() {
 
       {filteredInventory.length === 0 && (
         <div className="admin-no-results">
-          <p>Không tìm thấy sản phẩm nào.</p>
+          <p>No results found.</p>
         </div>
       )}
 
@@ -324,10 +324,10 @@ export default function InventoryManagement() {
       {editingItem && (
         <div className="admin-edit-modal">
           <div className="admin-modal-content">
-            <h3>Chỉnh sửa thông tin sản phẩm</h3>
+            <h3>Edit Product Information</h3>
             <div className="admin-modal-grid">
               <div className="admin-form-group">
-                <label>Tên sản phẩm</label>
+                <label>Product Name</label>
                 <input
                   type="text"
                   name="name"
@@ -338,7 +338,7 @@ export default function InventoryManagement() {
               </div>
               
               <div className="admin-form-group">
-                <label>Thương hiệu</label>
+                <label>Brand</label>
                 <input
                   type="text"
                   name="brand"
@@ -349,7 +349,7 @@ export default function InventoryManagement() {
               </div>
               
               <div className="admin-form-group">
-                <label>Giá</label>
+                <label>Price</label>
                 <input
                   type="number"
                   name="price"
@@ -362,7 +362,7 @@ export default function InventoryManagement() {
               </div>
               
               <div className="admin-form-group">
-                <label>Danh mục</label>
+                <label>Category</label>
                 <input
                   type="text"
                   name="category"
@@ -373,7 +373,7 @@ export default function InventoryManagement() {
               </div>
               
               <div className="admin-form-group">
-                <label>Tồn kho</label>
+                <label>Stock</label>
                 <input
                   type="number"
                   name="stockQuantity"
@@ -386,7 +386,7 @@ export default function InventoryManagement() {
             </div>
             
             <div className="admin-form-group">
-              <label>Mô tả</label>
+              <label>Description</label>
               <textarea
                 name="description"
                 value={editFormData.description}
@@ -397,7 +397,7 @@ export default function InventoryManagement() {
             </div>
             
             <div className="admin-form-group">
-              <label>Ảnh sản phẩm</label>
+              <label>Image</label>
               <input
                 type="file"
                 accept="image/*"
@@ -420,12 +420,12 @@ export default function InventoryManagement() {
                 {saving ? (
                   <>
                     <div className="admin-spinner"></div>
-                    Đang lưu...
+                    Saving...
                   </>
                 ) : (
                   <>
                     <LuSave size={16} />
-                    Lưu thay đổi
+                    Save changes
                   </>
                 )}
               </button>
@@ -435,7 +435,7 @@ export default function InventoryManagement() {
                 disabled={saving}
               >
                 <LuX size={16} />
-                Hủy
+                Cancel
               </button>
             </div>
           </div>

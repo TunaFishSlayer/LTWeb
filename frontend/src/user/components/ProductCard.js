@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Star, ShoppingCart, Lock } from "lucide-react";
+import { ShoppingCart, Lock } from "lucide-react";
 import { useCartStore } from "../../lib/cart";
 import { useAuthStore } from "../../lib/auth";
+import { toast } from "sonner";
 import "./ProductCard.css";
 
 const API_BASE = '/api';
@@ -89,6 +90,7 @@ export default function ProductCard({ laptop }) {
       _id: laptop._id || laptop.id
     };
     addItem(laptopWithId);
+    toast.success(`${laptop.name} added to cart!`);
   };
 
   return (
@@ -119,12 +121,6 @@ export default function ProductCard({ laptop }) {
       <div className="product-content">
         <div className="product-header">
           <span className="product-brand">{laptop.brand}</span>
-          <div className="product-rating">
-            <Star size={16} fill="#facc15" color="#facc15" />
-            <span>
-              {laptop.rating} ({laptop.reviews})
-            </span>
-          </div>
         </div>
 
         <h3

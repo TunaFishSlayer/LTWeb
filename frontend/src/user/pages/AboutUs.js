@@ -75,49 +75,6 @@ export default function AboutUs() {
           </div>
         </div>
       </section>
-
-      {/* Team */}
-      <section className="team-section">
-        <h2>Meet Our Team</h2>
-        <div className="team-grid">
-          <div className="team-member">
-            <img
-              src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face"
-              alt="CEO"
-            />
-            <h3>John Smith</h3>
-            <p className="role">CEO & Founder</p>
-            <p className="desc">
-              15+ years in tech industry, former engineer at major tech companies.
-            </p>
-          </div>
-
-          <div className="team-member">
-            <img
-              src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&h=200&fit=crop&crop=face"
-              alt="Michael Chen - CTO"
-            />
-            <h3>Michael Chen</h3>
-            <p className="role">CTO</p>
-            <p className="desc">
-              Technology visionary with 10+ years experience in software architecture and system design.
-            </p>
-          </div>
-
-          <div className="team-member">
-            <img
-              src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face"
-              alt="Head of Customer Success"
-            />
-            <h3>Mike Chen</h3>
-            <p className="role">Head of Customer Success</p>
-            <p className="desc">
-              Dedicated to ensuring every customer has an exceptional experience with us.
-            </p>
-          </div>
-        </div>
-      </section>
-
       <Footer />
     </div>
   );

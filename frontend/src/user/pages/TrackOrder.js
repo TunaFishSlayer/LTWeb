@@ -63,10 +63,16 @@ export default function TrackOrder() {
 
         setOrder(transformedOrder);
         
-        // Generate tracking info based on order status
+        // Generate tracking info based on order status with real-time updates
         const status = fetchedOrder.status?.toLowerCase() || 'pending';
         const orderDate = new Date(fetchedOrder.createdAt || new Date());
         const estimatedDelivery = new Date(orderDate.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days from order
+        
+        // Generate random intervals between 6-12 hours for each status update
+        const getRandomInterval = () => {
+          const hours = Math.floor(Math.random() * 7) + 6; // Random between 6-12 hours
+          return hours * 60 * 60 * 1000; // Convert to milliseconds
+        };
         
         const statusUpdates = {
           pending: [
@@ -80,7 +86,7 @@ export default function TrackOrder() {
           paid: [
             {
               status: 'paid',
-              date: orderDate.toISOString(),
+              date: new Date(orderDate.getTime() + getRandomInterval()).toISOString(),
               location: 'Processing Center',
               description: 'Payment confirmed, preparing your order'
             },
@@ -94,15 +100,21 @@ export default function TrackOrder() {
           shipped: [
             {
               status: 'shipped',
-              date: new Date(orderDate.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+              date: new Date(orderDate.getTime() + getRandomInterval() * 2).toISOString(),
               location: 'Distribution Center',
               description: 'Your order has been shipped'
             },
             {
               status: 'paid',
-              date: orderDate.toISOString(),
+              date: new Date(orderDate.getTime() + getRandomInterval()).toISOString(),
               location: 'Processing Center',
               description: 'Payment confirmed, preparing your order'
+            },
+            {
+              status: 'pending',
+              date: orderDate.toISOString(),
+              location: 'Warehouse',
+              description: 'Order received and being processed'
             }
           ],
           completed: [
@@ -114,23 +126,35 @@ export default function TrackOrder() {
             },
             {
               status: 'shipped',
-              date: new Date(orderDate.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+              date: new Date(orderDate.getTime() + getRandomInterval() * 3).toISOString(),
               location: 'Distribution Center',
               description: 'Your order has been shipped'
             },
             {
               status: 'paid',
-              date: orderDate.toISOString(),
+              date: new Date(orderDate.getTime() + getRandomInterval() * 2).toISOString(),
               location: 'Processing Center',
               description: 'Payment confirmed, preparing your order'
+            },
+            {
+              status: 'pending',
+              date: new Date(orderDate.getTime() + getRandomInterval()).toISOString(),
+              location: 'Warehouse',
+              description: 'Order received and being processed'
             }
           ],
           cancelled: [
             {
               status: 'cancelled',
-              date: orderDate.toISOString(),
+              date: new Date(orderDate.getTime() + getRandomInterval()).toISOString(),
               location: 'Processing Center',
               description: 'Order has been cancelled'
+            },
+            {
+              status: 'pending',
+              date: orderDate.toISOString(),
+              location: 'Warehouse',
+              description: 'Order received and being processed'
             }
           ]
         };
@@ -215,8 +239,8 @@ export default function TrackOrder() {
             <h3>Shipping To</h3>
             {order.shippingAddress ? (
               <>
-                <p>{order.shippingAddress.name}</p>
-                <p>{order.shippingAddress.street}</p>
+                <p>{order.shippingAddress.firstName} {order.shippingAddress.lastName}</p>
+                <p>{order.shippingAddress.address}</p>
                 <p>{order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.zipCode}</p>
                 <p>{order.shippingAddress.country}</p>
               </>

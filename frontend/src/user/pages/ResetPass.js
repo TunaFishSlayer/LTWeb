@@ -1,17 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { LuLock, LuEye, LuEyeClosed } from "react-icons/lu";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import "../styles/ResetPass.css";
 
 const API_BASE = "/api";
 
-const apiResetPassword = async (token, newPassword) => {
+const apiResetPassword = async (email, verificationCode, newPassword) => {
   const response = await fetch(`${API_BASE}/auth/reset-password`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ token, newPassword })
+    body: JSON.stringify({ email, code: verificationCode, newPassword })
   });
   
   if (!response.ok) {
@@ -25,8 +25,9 @@ const apiResetPassword = async (token, newPassword) => {
 export default function ResetPass() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const token = searchParams.get('token');
+  const email = searchParams.get('email') || '';
   
+  const [verificationCode, setVerificationCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -34,16 +35,6 @@ export default function ResetPass() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
-  const [tokenValid, setTokenValid] = useState(null);
-
-  useEffect(() => {
-    if (!token) {
-      setError("Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.");
-      setTokenValid(false);
-    } else {
-      setTokenValid(true);
-    }
-  }, [token]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -51,26 +42,31 @@ export default function ResetPass() {
     setSuccess("");
     
     // Validation
-    if (!newPassword || !confirmPassword) {
-      setError("Vui lòng điền đầy đủ thông tin");
+    if (!verificationCode || !newPassword || !confirmPassword) {
+      setError("Please fill in all required fields");
+      return;
+    }
+    
+    if (!email) {
+      setError("Email is required. Please go back to the forgot password page.");
       return;
     }
     
     if (newPassword.length < 6) {
-      setError("Mật khẩu phải có ít nhất 6 ký tự");
+      setError("Password must be at least 6 characters");
       return;
     }
     
     if (newPassword !== confirmPassword) {
-      setError("Mật khẩu xác nhận không khớp");
+      setError("Passwords do not match");
       return;
     }
 
     try {
       setLoading(true);
       
-      await apiResetPassword(token, newPassword);
-      setSuccess("Mật khẩu đã được đặt lại thành công! Đang chuyển hướng...");
+      await apiResetPassword(email, verificationCode, newPassword);
+      setSuccess("Password has been reset successfully! Redirecting to login...");
       
       // Redirect to login after 2 seconds
       setTimeout(() => {
@@ -78,58 +74,58 @@ export default function ResetPass() {
       }, 2000);
       
     } catch (err) {
-      if (err.message === "Invalid or expired reset token") {
-        setError("Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn. Vui lòng yêu cầu lại.");
+      if (err.message === "Invalid verification code") {
+        setError("Verification code is incorrect. Please check your email and try again.");
+      } else if (err.message === "Expired verification code") {
+        setError("Verification code has expired. Please request a new one.");
       } else {
-        setError(err.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
+        setError(err.message || 'An error occurred. Please try again.');
       }
     } finally {
       setLoading(false);
     }
   };
 
-  if (tokenValid === false) {
-    return (
-      <div className="reset-pass-page">
-        <div className="reset-pass-card">
-          <div className="reset-pass-header">
-            <h1 className="reset-pass-title">Link Hết Hạn</h1>
-            <p className="reset-pass-subtitle">
-              Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.
-            </p>
-          </div>
-          
-          <div className="reset-pass-footer">
-            <Link to="/forgot-password" className="reset-link">
-              Yêu cầu link mới
-            </Link>
-            <span className="divider">|</span>
-            <Link to="/login" className="login-link">
-              Đăng nhập
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="reset-pass-page">
       <div className="reset-pass-card">
         <div className="reset-pass-header">
-          <h1 className="reset-pass-title">Đặt Lại Mật Khẩu</h1>
+          <h1 className="reset-pass-title">Reset Password</h1>
           <p className="reset-pass-subtitle">
-            Nhập mật khẩu mới cho tài khoản của bạn
+            Enter the verification code sent to your email and your new password
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="reset-pass-form">
-          <label>Mật khẩu mới</label>
+          <label>Email</label>
+          <div className="input-group">
+            <input
+              type="email"
+              value={email}
+              disabled
+              className="disabled-input"
+            />
+          </div>
+
+          <label>Verification Code *</label>
+          <div className="input-group">
+            <input
+              type="text"
+              placeholder="Enter verification code"
+              value={verificationCode}
+              onChange={(e) => setVerificationCode(e.target.value)}
+              required
+              disabled={loading}
+              maxLength={6}
+            />
+          </div>
+          <label>New Password *</label>
           <div className="input-group-password">
             <LuLock className="icon-lock" />
             <input
               type={showPassword ? "text" : "password"}
-              placeholder="Nhập mật khẩu mới"
+              placeholder="Enter new password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               required
@@ -143,12 +139,12 @@ export default function ResetPass() {
             </span>
           </div>
 
-          <label>Xác nhận mật khẩu</label>
+          <label>Confirm New Password *</label>
           <div className="input-group-password">
             <LuLock className="icon-lock" />
             <input
               type={showConfirmPassword ? "text" : "password"}
-              placeholder="Xác nhận mật khẩu mới"
+              placeholder="Confirm new password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
@@ -170,13 +166,13 @@ export default function ResetPass() {
             className="btn-submit"
             disabled={loading}
           >
-            {loading ? 'Đang xử lý...' : 'Đặt Lại Mật Khẩu'}
+            {loading ? 'Processing...' : 'Reset Password'}
           </button>
         </form>
 
         <div className="reset-pass-footer">
           <Link to="/login" className="login-link">
-            Quay lại đăng nhập
+            Back to Login
           </Link>
         </div>
       </div>

@@ -163,7 +163,7 @@ export default function DiscountManagement() {
         setDiscounts(transformedDiscounts);
       }
 
-      showNotification(editingDiscount.id ? "Cập nhật discount thành công!" : "Thêm discount mới thành công!");
+      showNotification(editingDiscount.id ? "Discount update successfully!" : "Discount created successfully!");
       toast.success(editingDiscount.id ? 'Discount updated successfully' : 'Discount created successfully');
       
       setShowAddForm(false);
@@ -175,7 +175,7 @@ export default function DiscountManagement() {
   };
 
   const handleDeleteDiscount = async (id) => {
-    if (!window.confirm('Bạn có chắc chắn muốn xóa discount này?')) {
+    if (!window.confirm('Are you sure you want to delete this discount?')) {
       return;
     }
 
@@ -196,7 +196,7 @@ export default function DiscountManagement() {
       }
 
       setDiscounts(discounts.filter(d => d.id !== id));
-      showNotification("Xóa discount thành công!");
+      showNotification("Discount deleted successfully!");
       toast.success('Discount deleted successfully');
     } catch (error) {
       console.error('Error deleting discount:', error);
@@ -219,7 +219,7 @@ export default function DiscountManagement() {
 
   const getApplicableProducts = (discount) => {
     if (discount.applicableTo === "all") {
-      return "Tất cả sản phẩm";
+      return "All Laptop";
     } else {
       const productNames = products
         .filter(p => discount.productIds.includes(p._id || p.id))
@@ -227,9 +227,9 @@ export default function DiscountManagement() {
         .slice(0, 2);
       
       if (discount.productIds.length > 2) {
-        return `${productNames.join(", ")} và ${discount.productIds.length - 2} sản phẩm khác`;
+        return `${productNames.join(", ")} and ${discount.productIds.length - 2} other laptops`;
       }
-      return productNames.join(", ") || "Không có sản phẩm";
+      return productNames.join(", ") || "No laptop";
     }
   };
 
@@ -241,7 +241,7 @@ export default function DiscountManagement() {
     return (
       <div className="discount-management">
         <div className="admin-loading">
-          <p>Đang tải dữ liệu discount...</p>
+          <p>Loading discount data...</p>
         </div>
       </div>
     );
@@ -250,10 +250,10 @@ export default function DiscountManagement() {
   return (
     <div className="discount-management">
       <div className="discount-header">
-        <h2>Quản lý Discount</h2>
+        <h2>Discount Management</h2>
         <button onClick={handleAddDiscount} className="add-btn">
           <LuPlus size={20} />
-          Thêm Discount
+          Add Discount
         </button>
       </div>
 
@@ -266,11 +266,11 @@ export default function DiscountManagement() {
       {showAddForm && (
         <div className="discount-form-overlay">
           <div className="discount-form">
-            <h3>{editingDiscount.id ? "Chỉnh sửa Discount" : "Thêm Discount Mới"}</h3>
+            <h3>{editingDiscount.id ? "Edit Discount" : "Add New Discount"}</h3>
             
             <div className="form-grid">
               <div className="form-group">
-                <label>Tên Discount</label>
+                <label>Discount Name</label>
                 <input
                   type="text"
                   value={editingDiscount.name}
@@ -278,12 +278,12 @@ export default function DiscountManagement() {
                     ...editingDiscount,
                     name: e.target.value
                   })}
-                  placeholder="Nhập tên discount"
+                  placeholder="Enter discount name"
                 />
               </div>
 
               <div className="form-group">
-                <label>Loại Discount</label>
+                <label>Discount Type</label>
                 <select
                   value={editingDiscount.type}
                   onChange={(e) => setEditingDiscount({
@@ -291,13 +291,13 @@ export default function DiscountManagement() {
                     type: e.target.value
                   })}
                 >
-                  <option value="percentage">Phần trăm (%)</option>
-                  <option value="fixed">Số tiền cố định ($)</option>
+                  <option value="percentage">Percentage (%)</option>
+                  <option value="fixed">Fixed ($)</option>
                 </select>
               </div>
 
               <div className="form-group">
-                <label>Giá trị</label>
+                <label>Value</label>
                 <input
                   type="number"
                   value={editingDiscount.value}
@@ -312,7 +312,7 @@ export default function DiscountManagement() {
               </div>
 
               <div className="form-group">
-                <label>Áp dụng cho</label>
+                <label>Apply to</label>
                 <select
                   value={editingDiscount.applicableTo}
                   onChange={(e) => setEditingDiscount({
@@ -321,14 +321,14 @@ export default function DiscountManagement() {
                     productIds: e.target.value === "all" ? [] : editingDiscount.productIds
                   })}
                 >
-                  <option value="all">Tất cả sản phẩm</option>
-                  <option value="specific">Sản phẩm cụ thể</option>
+                  <option value="all">All Laptop</option>
+                  <option value="specific">Specific Laptop</option>
                 </select>
               </div>
 
               {editingDiscount.applicableTo === "specific" && (
                 <div className="form-group full-width">
-                  <label>Sản phẩm áp dụng</label>
+                  <label>Laptop Apply</label>
                   <div className="product-selector">
                     {products.map(product => {
                       const productId = product._id || product.id;
@@ -360,7 +360,7 @@ export default function DiscountManagement() {
               )}
 
               <div className="form-group">
-                <label>Ngày bắt đầu</label>
+                <label>Start Date</label>
                 <input
                   type="date"
                   value={editingDiscount.startDate}
@@ -372,7 +372,7 @@ export default function DiscountManagement() {
               </div>
 
               <div className="form-group">
-                <label>Ngày kết thúc</label>
+                <label>End Date</label>
                 <input
                   type="date"
                   value={editingDiscount.endDate}
@@ -384,7 +384,7 @@ export default function DiscountManagement() {
               </div>
 
               <div className="form-group">
-                <label>Giá trị đơn hàng tối thiểu</label>
+                <label>Min purchase</label>
                 <input
                   type="number"
                   value={editingDiscount.minPurchase}
@@ -398,7 +398,7 @@ export default function DiscountManagement() {
               </div>
 
               <div className="form-group">
-                <label>Giảm giá tối đa (tùy chọn)</label>
+                <label>Max discount</label>
                 <input
                   type="number"
                   value={editingDiscount.maxDiscount}
@@ -421,7 +421,7 @@ export default function DiscountManagement() {
                       isActive: e.target.checked
                     })}
                   />
-                  Kích hoạt discount
+                  Activate discount
                 </label>
               </div>
             </div>
@@ -429,7 +429,7 @@ export default function DiscountManagement() {
             <div className="form-actions">
               <button onClick={handleSaveDiscount} className="save-btn">
                 <LuSave size={16} />
-                Lưu
+                Save discount
               </button>
               <button 
                 onClick={() => {
@@ -439,7 +439,7 @@ export default function DiscountManagement() {
                 className="cancel-btn"
               >
                 <LuX size={16} />
-                Hủy
+                Cancel
               </button>
             </div>
           </div>
@@ -463,11 +463,11 @@ export default function DiscountManagement() {
 
                 <div className="discount-details">
                   <div className="detail-item">
-                    <span className="detail-label">Áp dụng:</span>
+                    <span className="detail-label">Apply to:</span>
                     <span className="detail-value">{getApplicableProducts(discount)}</span>
                   </div>
                   <div className="detail-item">
-                    <span className="detail-label">Thời gian:</span>
+                    <span className="detail-label">Time:</span>
                     <span className="detail-value">
                       <LuCalendar size={14} />
                       {discount.startDate} - {discount.endDate}
@@ -475,7 +475,7 @@ export default function DiscountManagement() {
                   </div>
                   {discount.minPurchase > 0 && (
                     <div className="detail-item">
-                      <span className="detail-label">Đơn hàng tối thiểu:</span>
+                      <span className="detail-label">Min purchase:</span>
                       <span className="detail-value">${discount.minPurchase.toLocaleString()}</span>
                     </div>
                   )}
@@ -483,7 +483,7 @@ export default function DiscountManagement() {
 
                 <div className="discount-status">
                   <span className={`status-badge ${discount.isActive && !expired ? 'active' : 'inactive'}`}>
-                    {discount.isActive && !expired ? 'Đang hoạt động' : (expired ? 'Hết hạn' : 'Không hoạt động')}
+                    {discount.isActive && !expired ? 'Active' : (expired ? 'Expired' : 'Inactive')}
                   </span>
                 </div>
               </div>
@@ -503,7 +503,7 @@ export default function DiscountManagement() {
 
       {discounts.length === 0 && (
         <div className="no-discounts">
-          <p>Chưa có discount nào. Hãy thêm discount mới!</p>
+          <p>No discounts found. Add a new discount!</p>
         </div>
       )}
     </div>

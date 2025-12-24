@@ -77,13 +77,13 @@ export default function SalesAnalytics() {
   const exportReport = () => {
     try {
       if (!analytics) {
-        toast.error('Không có dữ liệu để xuất báo cáo');
+        toast.error('No data to export report');
         return;
       }
 
       // Check if jsPDF is available
       if (typeof window.jspdf === 'undefined') {
-        toast.error('Đang tải thư viện PDF, vui lòng thử lại sau vài giây...');
+        toast.error('Loading PDF library, please try again in a few seconds...');
         return;
       }
 
@@ -105,7 +105,7 @@ export default function SalesAnalytics() {
       // Add title with better formatting
       doc.setFontSize(16);
       doc.setFont('helvetica', 'bold');
-      const title = `Bao cao Phan tich Ban hang - ${timeRange}`;
+      const title = `Sales Analytics Report - ${timeRange}`;
       const titleWidth = doc.getTextWidth(title);
       doc.text(title, (pageWidth - titleWidth) / 2, yPosition);
       yPosition += 15;
@@ -119,17 +119,17 @@ export default function SalesAnalytics() {
       // Add summary section with better formatting
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
-      doc.text('TOM TAT DOANH THU:', margin, yPosition);
+      doc.text('SALES SUMMARY:', margin, yPosition);
       yPosition += 8;
       
       doc.setFontSize(12);
       doc.setFont('helvetica', 'normal');
       
       const summaryData = [
-        { label: 'Tong Doanh thu:', value: formatCurrency(analytics.totalRevenue) },
-        { label: 'Tong Don hang:', value: analytics.totalOrders.toLocaleString() },
-        { label: 'Gia tri TB Don hang:', value: formatCurrency(analytics.averageOrderValue) },
-        { label: 'Tong Khach hang:', value: analytics.totalCustomers.toLocaleString() }
+        { label: 'Total Revenue:', value: formatCurrency(analytics.totalRevenue) },
+        { label: 'Total Orders:', value: analytics.totalOrders.toLocaleString() },
+        { label: 'Average Order Value:', value: formatCurrency(analytics.averageOrderValue) },
+        { label: 'Total Customers:', value: analytics.totalCustomers.toLocaleString() }
       ];
       
       summaryData.forEach(item => {
@@ -147,13 +147,13 @@ export default function SalesAnalytics() {
       // Add top products section with better formatting
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
-      doc.text('TOP SAN PHAM BAN CHAY:', margin, yPosition);
+      doc.text('TOP PRODUCTS SOLD:', margin, yPosition);
       yPosition += 10;
       
       if (topProducts.length === 0) {
         doc.setFontSize(12);
         doc.setFont('helvetica', 'normal');
-        doc.text('Khong co du lieu san pham', margin, yPosition);
+        doc.text('No data available', margin, yPosition);
       } else {
         topProducts.forEach((product, index) => {
           // Check if we need a new page
@@ -168,9 +168,9 @@ export default function SalesAnalytics() {
           yPosition += 6;
           
           doc.setFont('helvetica', 'normal');
-          doc.text(`Thuong hieu: ${product.brand}`, margin + 5, yPosition);
-          doc.text(`Da ban: ${product.sales} san pham`, margin + 5, yPosition + 6);
-          doc.text(`Doanh thu: ${formatCurrency(product.revenue)}`, margin + 5, yPosition + 12);
+          doc.text(`Brand: ${product.brand}`, margin + 5, yPosition);
+          doc.text(`Sold: ${product.sales} products`, margin + 5, yPosition + 6);
+          doc.text(`Revenue: ${formatCurrency(product.revenue)}`, margin + 5, yPosition + 12);
           yPosition += 20;
         });
       }
@@ -181,46 +181,46 @@ export default function SalesAnalytics() {
         doc.setPage(i);
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
-        doc.text(`Trang ${i} / ${totalPages}`, pageWidth - 30, doc.internal.pageSize.getHeight() - 10);
-        doc.text(`Ngay xuat: ${new Date().toLocaleDateString('vi-VN')}`, margin, doc.internal.pageSize.getHeight() - 10);
+        doc.text(`Page ${i} / ${totalPages}`, pageWidth - 30, doc.internal.pageSize.getHeight() - 10);
+        doc.text(`Exported on: ${new Date().toLocaleDateString('vi-VN')}`, margin, doc.internal.pageSize.getHeight() - 10);
       }
       
       // Save PDF with error handling
       try {
-        doc.save(`bao-cao-phan-tich-ban-hang-${timeRange}.pdf`);
-        toast.success('Xuất báo cáo PDF thành công!');
+        doc.save(`sales-analytics-report-${timeRange}.pdf`);
+        toast.success('Export PDF successfully!');
       } catch (saveError) {
         console.error('Save error:', saveError);
-        toast.error('Lỗi khi lưu file PDF, vui lòng thử lại');
+        toast.error('Error saving PDF file, please try again');
       }
       
     } catch (error) {
       console.error('PDF Export error:', error);
-      toast.error('Lỗi khi tạo báo cáo PDF: ' + error.message);
+      toast.error('Error creating PDF report: ' + error.message);
     }
   };
 
   if (loading || !analytics) {
-    return <div className="admin-analytics-loading">Đang tải dữ liệu phân tích...</div>;
+    return <div className="admin-analytics-loading">Loading analytics data...</div>;
   }
 
   return (
     <div className="admin-sales-analytics">
       <div className="admin-analytics-header">
-        <h2>Phân tích Bán hàng</h2>
+        <h2>Sales Analytics</h2>
         <div className="admin-header-controls">
           <select 
             value={timeRange} 
             onChange={(e) => setTimeRange(e.target.value)}
             className="admin-time-range-selector"
           >
-            <option value="week">7 ngày qua</option>
-            <option value="month">30 ngày qua</option>
-            <option value="quarter">90 ngày qua</option>
+            <option value="week">7 days ago</option>
+            <option value="month">30 days ago</option>
+            <option value="quarter">90 days ago</option>
           </select>
           <button onClick={exportReport} className="admin-export-btn">
             <LuDownload size={16} />
-            Xuất Báo cáo
+            Export
           </button>
         </div>
       </div>
@@ -232,7 +232,7 @@ export default function SalesAnalytics() {
             <LuDollarSign size={24} />
           </div>
           <div className="admin-metric-content">
-            <h3>Tổng Doanh thu</h3>
+            <h3>Total Revenue</h3>
             <p className="admin-metric-value">{formatCurrency(analytics.totalRevenue)}</p>
             <div className="admin-metric-change" style={{ color: getChangeColor(analytics.revenueChange) }}>
               {getChangeIcon(analytics.revenueChange)}
@@ -246,7 +246,7 @@ export default function SalesAnalytics() {
             <LuShoppingCart size={24} />
           </div>
           <div className="admin-metric-content">
-            <h3>Tổng Đơn hàng</h3>
+            <h3>Total Orders</h3>
             <p className="admin-metric-value">{analytics.totalOrders.toLocaleString()}</p>
             <div className="admin-metric-change" style={{ color: getChangeColor(analytics.ordersChange) }}>
               {getChangeIcon(analytics.ordersChange)}
@@ -260,7 +260,7 @@ export default function SalesAnalytics() {
             <LuPackage size={24} />
           </div>
           <div className="admin-metric-content">
-            <h3>Giá trị TB Đơn hàng</h3>
+            <h3>Average Order Value</h3>
             <p className="admin-metric-value">{formatCurrency(analytics.averageOrderValue)}</p>
             <div className="admin-metric-change" style={{ color: getChangeColor(analytics.aovChange) }}>
               {getChangeIcon(analytics.aovChange)}
@@ -274,7 +274,7 @@ export default function SalesAnalytics() {
             <LuUsers size={24} />
           </div>
           <div className="admin-metric-content">
-            <h3>Khách hàng</h3>
+            <h3>Total Customers</h3>
             <p className="admin-metric-value">{analytics.totalCustomers.toLocaleString()}</p>
             <div className="admin-metric-change" style={{ color: getChangeColor(analytics.customersChange) }}>
               {getChangeIcon(analytics.customersChange)}
@@ -286,7 +286,7 @@ export default function SalesAnalytics() {
 
       {/* Sales Chart */}
       <div className="admin-chart-section">
-        <h3>Xu hướng Bán hàng</h3>
+        <h3>Sales Trend</h3>
         <div className="admin-chart-container">
           <div className="admin-chart-placeholder">
             <div className="admin-chart-bars">
@@ -295,12 +295,12 @@ export default function SalesAnalytics() {
                   <div 
                     className="admin-chart-bar admin-revenue-bar" 
                     style={{ height: `${(item.revenue / 7000) * 100}%` }}
-                    title={`Doanh thu: ${formatCurrency(item.revenue)}`}
+                    title={`Revenue: ${formatCurrency(item.revenue)}`}
                   ></div>
                   <div 
                     className="admin-chart-bar admin-orders-bar" 
                     style={{ height: `${(item.orders / 25) * 100}%` }}
-                    title={`Đơn hàng: ${item.orders}`}
+                    title={`Orders: ${item.orders}`}
                   ></div>
                   <div className="admin-chart-label">{item.date.split('/')[0]}</div>
                 </div>
@@ -309,11 +309,11 @@ export default function SalesAnalytics() {
             <div className="admin-chart-legend">
               <div className="admin-legend-item">
                 <div className="admin-legend-color admin-revenue-bar"></div>
-                <span>Doanh thu</span>
+                <span>Revenue</span>
               </div>
               <div className="admin-legend-item">
                 <div className="admin-legend-color admin-orders-bar"></div>
-                <span>Đơn hàng</span>
+                <span>Orders</span>
               </div>
             </div>
           </div>
@@ -323,7 +323,7 @@ export default function SalesAnalytics() {
       <div className="admin-analytics-grid">
         {/* Top Products */}
         <div className="admin-analytics-card">
-          <h3>Sản phẩm Bán chạy</h3>
+          <h3>Top Products Sold</h3>
           <div className="admin-top-products-list">
             {topProducts.map((product, index) => (
               <div key={product.id || product._id} className="admin-product-row">
@@ -336,11 +336,11 @@ export default function SalesAnalytics() {
                 <div className="admin-product-stats">
                   <div className="admin-sales-stat">
                     <span className="admin-stat-value">{product.sales}</span>
-                    <span className="admin-stat-label">đã bán</span>
+                    <span className="admin-stat-label">sold</span>
                   </div>
                   <div className="admin-revenue-stat">
                     <span className="admin-stat-value">{formatCurrency(product.revenue)}</span>
-                    <span className="admin-stat-label">doanh thu</span>
+                    <span className="admin-stat-label">revenue</span>
                   </div>
                 </div>
               </div>
@@ -350,10 +350,10 @@ export default function SalesAnalytics() {
 
         {/* Performance Summary */}
         <div className="admin-analytics-card">
-          <h3>Tóm tắt Hiệu suất</h3>
+          <h3>Performance Summary</h3>
           <div className="admin-performance-list">
             <div className="admin-performance-item">
-              <span className="admin-performance-label">Tỷ lệ chuyển đổi</span>
+              <span className="admin-performance-label">Conversion Rate</span>
               <div className="admin-performance-value">
                 <span>{analytics.conversionRate}%</span>
                 <span className="admin-performance-change" style={{ color: getChangeColor(analytics.conversionChange) }}>
@@ -363,7 +363,7 @@ export default function SalesAnalytics() {
               </div>
             </div>
             <div className="admin-performance-item">
-              <span className="admin-performance-label">Giá trị đơn hàng trung bình</span>
+              <span className="admin-performance-label">Average Order Value</span>
               <div className="admin-performance-value">
                 <span>{formatCurrency(analytics.averageOrderValue)}</span>
                 <span className="admin-performance-change" style={{ color: getChangeColor(analytics.aovChange) }}>
@@ -373,7 +373,7 @@ export default function SalesAnalytics() {
               </div>
             </div>
             <div className="admin-performance-item">
-              <span className="admin-performance-label">Tổng khách hàng</span>
+              <span className="admin-performance-label">Total Customers</span>
               <div className="admin-performance-value">
                 <span>{analytics.totalCustomers.toLocaleString()}</span>
                 <span className="admin-performance-change" style={{ color: getChangeColor(analytics.customersChange) }}>
@@ -386,12 +386,12 @@ export default function SalesAnalytics() {
           </div>
 
           <div className="admin-insights">
-            <h4>Chi tiết insights</h4>
+            <h4>Insights details</h4>
             <ul>
-              <li>Doanh thu tăng {analytics.revenueChange}% so với kỳ trước</li>
-              <li>Sản phẩm MacBook Pro 14-inch M3 là sản phẩm bán chạy nhất</li>
-              <li>Tỷ lệ chuyển đổi cải thiện {analytics.conversionChange}%</li>
-              <li>Giá trị đơn hàng trung bình giảm {Math.abs(analytics.aovChange)}%</li>
+              <li>Revenue increased by {analytics.revenueChange}% compared to the previous period</li>
+              <li>MacBook Pro 14-inch M3 is the best selling product</li>
+              <li>Conversion rate improved by {analytics.conversionChange}%</li>
+              <li>Average order value decreased by {Math.abs(analytics.aovChange)}%</li>
             </ul>
           </div>
         </div>

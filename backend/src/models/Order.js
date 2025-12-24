@@ -41,6 +41,35 @@ const orderSchema = new mongoose.Schema(
       state: String,
       zipCode: String,
       country: String
+    },
+
+    paymentMethod: {
+      type: String,
+      enum: ['card', 'cod', 'other'],
+      default: 'cod'
+    },
+
+    paymentInfo: {
+      method: {
+        type: String,
+        enum: ['card', 'cod', 'other']
+      },
+      details: {
+        cardNumber: String, // Last 4 digits only
+        nameOnCard: String
+      },
+      paidAt: Date,
+      amount: Number
+    },
+
+    refundInfo: {
+      refundedAt: Date,
+      amount: Number,
+      status: {
+        type: String,
+        enum: ['pending', 'processed', 'failed'],
+        default: 'pending'
+      }
     }
   },
   { timestamps: true }
