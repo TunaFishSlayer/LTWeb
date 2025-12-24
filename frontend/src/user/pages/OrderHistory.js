@@ -43,22 +43,43 @@ export default function OrderHistory() {
         }
 
         // Transform backend order format to match frontend expectations
-        const transformedOrders = data.data.map(order => ({
-          id: order._id || order.id,
-          date: order.createdAt || order.date,
-          status: order.status || 'pending',
-          items: order.items.map(item => ({
-            id: item.laptop._id || item.laptop.id,
-            name: item.laptop.name,
-            image: item.laptop.image,
-            price: item.price || item.laptop.price,
-            quantity: item.quantity
-          })),
-          subtotal: order.totalPrice,
-          total: order.totalPrice,
-          shipping: 0,
-          shippingAddress: order.shippingAddress
-        }));
+        const transformedOrders = data.data.map(order => {
+          console.log('Raw order from backend:', order); // Debug log
+          
+          const discountedTotal = order.totalPrice - (order.discountInfo?.amount || 0);
+          const tax = discountedTotal * 0.1;
+            
+          const transformedOrder = {
+            id: order._id || order.id,
+            date: order.createdAt || order.date,
+            status: order.status || 'pending',
+            items: order.items.map(item => ({
+              id: item.laptop?._id || item.laptop?.id || item.id,
+              name: item.laptop?.name || 'Unknown Product',
+              image: item.laptop?.image || '/placeholder-laptop.jpg',
+              price: item.price || item.laptop?.price || 0,
+              originalPrice: item.laptop?.price || item.price || 0,
+              quantity: item.quantity,
+              discountApplied: order.discountInfo ? {
+                code: order.discountInfo.code,
+                amount: order.discountInfo.amount,
+                type: order.discountInfo.type,
+                value: order.discountInfo.value
+              } : null
+            })),
+            subtotal: order.totalPrice,
+            total: discountedTotal,
+            paidAmount: discountedTotal + tax,
+            discountInfo: order.discountInfo,
+            shipping: 0,
+            shippingAddress: order.shippingAddress,
+            paymentMethod: order.paymentMethod,
+            paymentInfo: order.paymentInfo
+          };
+          
+          console.log('Transformed order:', transformedOrder); // Debug log
+          return transformedOrder;
+        });
 
         // Check for new order from location state (from successful checkout)
         const newOrder = location.state?.order;
@@ -68,21 +89,35 @@ export default function OrderHistory() {
           order.id === (newOrder._id || newOrder.id)
         )) {
           // Transform new order to match format
+          const newDiscountedTotal = newOrder.totalPrice - (newOrder.discountInfo?.amount || 0);
+          const newTax = newDiscountedTotal * 0.1;
+          
           const transformedNewOrder = {
             id: newOrder._id || newOrder.id,
             date: newOrder.createdAt || new Date().toISOString(),
             status: newOrder.status || 'paid',
             items: newOrder.items?.map(item => ({
               id: item.laptop?._id || item.laptop?.id || item.id,
-              name: item.laptop?.name || item.name,
-              image: item.laptop?.image || item.image,
-              price: item.price || item.laptop?.price,
-              quantity: item.quantity
+              name: item.laptop?.name || item.name || 'Unknown Product',
+              image: item.laptop?.image || item.image || '/placeholder-laptop.jpg',
+              price: item.price || item.laptop?.price || 0,
+              originalPrice: item.laptop?.price || item.price || 0,
+              quantity: item.quantity,
+              discountApplied: newOrder.discountInfo ? {
+                code: newOrder.discountInfo.code,
+                amount: newOrder.discountInfo.amount,
+                type: newOrder.discountInfo.type,
+                value: newOrder.discountInfo.value
+              } : null
             })) || [],
             subtotal: newOrder.totalPrice,
-            total: newOrder.totalPrice,
+            total: newDiscountedTotal,
+            paidAmount: newDiscountedTotal + newTax,
+            discountInfo: newOrder.discountInfo,
             shipping: 0,
-            shippingAddress: newOrder.shippingAddress
+            shippingAddress: newOrder.shippingAddress,
+            paymentMethod: newOrder.paymentMethod,
+            paymentInfo: newOrder.paymentInfo
           };
           finalOrders = [transformedNewOrder, ...transformedOrders];
           
@@ -299,18 +334,26 @@ export default function OrderHistory() {
               {order.items?.map((item) => (
                 <div key={item.id} className="order-item">
                   <img 
-                    src={item.image || 'https://via.placeholder.com/80'} 
+                    src={item.image} 
                     alt={item.name} 
                     className="item-image" 
                     onError={(e) => {
                       e.target.onerror = null;
-                      e.target.src = 'https://via.placeholder.com/80';
                     }}
                   />
                   <div className="item-details">
                     <h4>{item.name}</h4>
                     <p>Quantity: {item.quantity}</p>
-                    <p>{formatPrice(item.price)} each</p>
+                    {console.log('Item discountApplied:', item.discountApplied)} {/* Debug log */}
+                    {item.discountApplied && item.originalPrice > item.price ? (
+                      <div className="item-discount-info">
+                        <p className="original-price">{formatPrice(item.originalPrice)} each</p>
+                        <p className="discounted-price">{formatPrice(item.price)} each</p>
+                        <p className="discount-code">Discount: {item.discountApplied.code}</p>
+                      </div>
+                    ) : (
+                      <p>{formatPrice(item.price)} each</p>
+                    )}
                   </div>
                   <div className="item-total">
                     {formatPrice(item.price * item.quantity)}
@@ -324,21 +367,31 @@ export default function OrderHistory() {
                 <span>Subtotal:</span>
                 <span>{formatPrice(order.subtotal || order.total)}</span>
               </div>
+              {order.discountInfo && (
+                <div className="summary-row discount">
+                  <span>
+                    Discount {order.discountInfo.code}:
+                    {order.discountInfo.type === 'percentage' && ` ${order.discountInfo.value}%`}
+                  </span>
+                  <span>-{formatPrice(order.discountInfo.amount)}</span>
+                </div>
+              )}
               <div className="summary-row">
                 <span>Shipping:</span>
                 <span>{order.shipping ? formatPrice(order.shipping) : 'Free'}</span>
               </div>
               <div className="summary-row">
                 <span>Tax (10%):</span>
-                <span>{formatPrice((order.subtotal || order.total) * 0.1)}</span>
+                <span>{formatPrice((order.total || (order.subtotal - (order.discountInfo?.amount || 0))) * 0.1)}</span>
               </div>
+              <div className="summary-row">
+                <span>Payment Method:</span>
+                <span>{order.paymentMethod || 'Cash on Delivery'}</span>
+              </div>
+             
               <div className="summary-row total">
-                <span>Total:</span>
-                <span>{formatPrice(
-                  (order.subtotal || order.total) + 
-                  (order.shipping || 0) + 
-                  ((order.subtotal || order.total) * 0.1)
-                )}</span>
+                <span>Total Paid:</span>
+                <span>{formatPrice(order.paidAmount)}</span>
               </div>
             </div>
 

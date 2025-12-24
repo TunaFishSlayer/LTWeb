@@ -277,3 +277,23 @@
   font-size: 3rem;
   margin-bottom: 1rem;
 }
+.cod-message,
+.other-payment-message {
+    padding: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    background-color: #f0fdf4;
+    border-radius: 0.5rem;
+    margin: 1.5rem;
+}
+
+.cod-message p,
+.other-payment-message p {
+    margin: 0.5rem 0;
+    color: #166534;
+    font-size: 0.9375rem;
+}
+
+.cod-message p:first-child,
+.other-payment-message p:first-child {
+  color: #007bff;
+}

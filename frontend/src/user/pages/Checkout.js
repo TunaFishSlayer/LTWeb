@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCartStore } from '../../lib/cart';
+import { useDiscountStore } from '../../lib/discount';
 import { toast } from 'sonner';
 import '../styles/Checkout.css';
 
@@ -15,6 +16,7 @@ export default function Checkout() {
   const [discount, setDiscount] = useState(null);
   const [finalPrice, setFinalPrice] = useState(null);
   const { items: cartItems, clearCart, getTotalPrice } = useCartStore();
+  const { fetchDiscounts, getDiscountForLaptop } = useDiscountStore();
   const [items, setItems] = useState([]);
 
   useEffect(() => {
@@ -31,47 +33,41 @@ export default function Checkout() {
 
   const fetchDiscount = useCallback(async () => {
     try {
-      // Fetch active discounts from public endpoint
-      const response = await fetch(`${API_BASE}/discounts/active`);
-      const data = await response.json();
+      // Fetch discounts if needed (cached)
+      await fetchDiscounts();
       
-      if (data.success && data.data && cartItems.length > 0) {
+      if (cartItems.length > 0) {
         const currentTotalPrice = getTotalPrice();
         
-        // For simplicity, we'll apply the first applicable discount found
-        // In a real scenario, you might want to handle multiple discounts differently
-        const firstCartItem = cartItems[0];
-        const laptopId = firstCartItem.laptop._id || firstCartItem.laptop.id;
+        // Apply discount for each laptop in cart
+        let totalDiscount = 0;
+        let applicableDiscountFound = null;
         
-        // Find applicable discount for this laptop
-        const applicableDiscount = data.data.find(d => {
-          if (d.applicableTo === 'all') {
-            return true;
-          } else if (d.applicableTo === 'specific') {
-            const productIds = d.productIds?.map(p => p._id || p.id || p) || [];
-            return productIds.includes(laptopId);
-          }
-          return false;
-        });
-        
-        if (applicableDiscount) {
-          setDiscount(applicableDiscount);
+        for (const cartItem of cartItems) {
+          const laptopId = cartItem.laptop._id || cartItem.laptop.id;
+          const applicableDiscount = getDiscountForLaptop(laptopId);
           
-          // Calculate final price after discount for the total cart
-          let discountedTotal = currentTotalPrice;
-          if (applicableDiscount.type === 'percentage') {
-            discountedTotal = currentTotalPrice * (1 - applicableDiscount.value / 100);
-            if (applicableDiscount.maxDiscount > 0) {
-              const maxDiscountAmount = currentTotalPrice * (applicableDiscount.maxDiscount / 100);
-              const discountAmount = currentTotalPrice - discountedTotal;
-              if (discountAmount > maxDiscountAmount) {
-                discountedTotal = currentTotalPrice - maxDiscountAmount;
+          if (applicableDiscount) {
+            applicableDiscountFound = applicableDiscount;
+            let itemDiscount = 0;
+            
+            if (applicableDiscount.type === 'percentage') {
+              itemDiscount = cartItem.laptop.price * (applicableDiscount.value / 100);
+              if (applicableDiscount.maxDiscount > 0) {
+                const maxDiscountAmount = cartItem.laptop.price * (applicableDiscount.maxDiscount / 100);
+                itemDiscount = Math.min(itemDiscount, maxDiscountAmount);
               }
+            } else if (applicableDiscount.type === 'fixed') {
+              itemDiscount = Math.min(applicableDiscount.value, cartItem.laptop.price);
             }
-          } else if (applicableDiscount.type === 'fixed') {
-            discountedTotal = Math.max(0, currentTotalPrice - applicableDiscount.value);
+            
+            totalDiscount += itemDiscount * cartItem.quantity;
           }
-          
+        }
+        
+        if (applicableDiscountFound) {
+          setDiscount(applicableDiscountFound);
+          const discountedTotal = Math.max(0, currentTotalPrice - totalDiscount);
           setFinalPrice(Math.round(discountedTotal * 100) / 100);
         } else {
           setDiscount(null);
@@ -84,7 +80,7 @@ export default function Checkout() {
       setDiscount(null);
       setFinalPrice(null);
     }
-  }, [cartItems, getTotalPrice, setDiscount, setFinalPrice]);
+  }, [cartItems, getTotalPrice, fetchDiscounts, getDiscountForLaptop]);
 
   useEffect(() => {
     fetchDiscount();
@@ -95,16 +91,12 @@ export default function Checkout() {
   const tax = totalPrice * 0.08;
   const finalTotal = (finalPrice !== null ? finalPrice : totalPrice) + shipping + tax;
 
-  const [billingInfo, setBillingInfo] = useState({
+  const [shippingInfo, setShippingInfo] = useState({
     firstName: '',
     lastName: '',
-    email: '',
     phone: '',
     address: '',
     city: '',
-    state: '',
-    zipCode: '',
-    country: 'US',
   });
 
   const [paymentInfo, setPaymentInfo] = useState({
@@ -114,7 +106,7 @@ export default function Checkout() {
     nameOnCard: '',
   });
 
-  const [paymentMethod, setPaymentMethod] = useState('card');
+  const [paymentMethod, setPaymentMethod] = useState('cod');
 
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
@@ -131,47 +123,46 @@ export default function Checkout() {
       // Prepare order items for backend (use _id if available, otherwise id)
       const orderItems = cartItems.map(item => ({
         laptopId: item.laptop._id || item.laptop.id,
-        quantity: item.quantity
+        quantity: item.quantity,
+        price: item.laptop.price
       }));
 
+      // Prepare payment info based on selected method
+      let paymentInfoData = {
+        method: paymentMethod
+      };
+
+      if (paymentMethod === 'card') {
+        paymentInfoData.details = {
+          cardNumber: paymentInfo.cardNumber,
+          nameOnCard: paymentInfo.nameOnCard
+        };
+      }
+
       // Call backend API to create order
+      const orderPayload = {
+        items: orderItems,
+        totalPrice: finalTotal,
+        paymentMethod: paymentMethod,
+        paymentInfo: paymentInfoData,
+        shippingAddress: shippingInfo,
+        discountInfo: discount ? {
+          code: discount.code,
+          amount: totalPrice - finalTotal,
+          type: discount.type,
+          value: discount.value
+        } : null
+      };
+        
+      console.log('Sending order payload:', orderPayload); // Debug log
+      
       const response = await fetch(`${API_BASE}/orders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({
-          items: orderItems,
-          discountCode: discount?.code || null,
-          shippingAddress: {
-            firstName: billingInfo.firstName,
-            lastName: billingInfo.lastName,
-            email: billingInfo.email,
-            phone: billingInfo.phone,
-            address: billingInfo.address,
-            city: billingInfo.city,
-            state: billingInfo.state,
-            zipCode: billingInfo.zipCode,
-            country: billingInfo.country
-          },
-          billingAddress: {
-            firstName: billingInfo.firstName,
-            lastName: billingInfo.lastName,
-            email: billingInfo.email,
-            phone: billingInfo.phone,
-            address: billingInfo.address,
-            city: billingInfo.city,
-            state: billingInfo.state,
-            zipCode: billingInfo.zipCode,
-            country: billingInfo.country
-          },
-          paymentMethod: paymentMethod,
-          paymentInfo: paymentMethod === 'card' ? {
-            cardNumber: paymentInfo.cardNumber.slice(-4), // Only send last 4 digits
-            nameOnCard: paymentInfo.nameOnCard
-          } : null
-        })
+        body: JSON.stringify(orderPayload)
       });
 
       const data = await response.json();
@@ -180,11 +171,38 @@ export default function Checkout() {
         throw new Error(data.message || 'Failed to create order');
       }
 
+      // If payment method is card, process payment
+      if (paymentMethod === 'card') {
+        try {
+          console.log('Making payment request to:', `${API_BASE}/payments`);
+          console.log('Payment payload:', {
+            cardDetails: {
+              cardNumber: paymentInfo.cardNumber,
+              nameOnCard: paymentInfo.nameOnCard,
+              expiryDate: paymentInfo.expiryDate,
+              cvv: paymentInfo.cvv
+            },
+            amount: finalTotal
+          });
+         
+        } catch (paymentError) {
+          throw new Error(`Payment failed: ${paymentError.message}`);
+        }
+      }
+
       // Order created successfully
       setOrderId(data.data._id || data.data.id);
       setOrderComplete(true);
       clearCart();
       setItems([]);
+      
+      // Navigate to order history with the new order data
+      navigate('/user/orders', { 
+        state: { 
+          order: data.data,
+          paymentSuccess: true 
+        } 
+      });
       toast.success('Order placed successfully!');
 
     } catch (err) {
@@ -214,67 +232,67 @@ export default function Checkout() {
 
   return (
     <div className="checkout-container">
-      <h1>Checkout</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+        <button 
+          className="outline-btn" 
+          onClick={() => navigate(-1)} 
+          style={{ padding: '0.5rem 1rem' }}
+        >
+          ← Back
+        </button>
+        <h1>Checkout</h1>
+      </div>
       <div className="checkout-grid">
         {/* Form */}
         <form className="checkout-form" onSubmit={handlePlaceOrder}>
-          <h2>Billing Information</h2>
+          <h2>Shipping Information</h2>
           <div className="grid-2">
             <input
               placeholder="First Name"
-              value={billingInfo.firstName}
-              onChange={(e) => setBillingInfo({ ...billingInfo, firstName: e.target.value })}
+              value={shippingInfo.firstName}
+              onChange={(e) => setShippingInfo({ ...shippingInfo, firstName: e.target.value })}
               required
             />
             <input
               placeholder="Last Name"
-              value={billingInfo.lastName}
-              onChange={(e) => setBillingInfo({ ...billingInfo, lastName: e.target.value })}
+              value={shippingInfo.lastName}
+              onChange={(e) => setShippingInfo({ ...shippingInfo, lastName: e.target.value })}
               required
             />
           </div>
           <input
-            type="email"
-            placeholder="Email"
-            value={billingInfo.email}
-            onChange={(e) => setBillingInfo({ ...billingInfo, email: e.target.value })}
-            required
-          />
-          <input
             placeholder="Phone"
-            value={billingInfo.phone}
-            onChange={(e) => setBillingInfo({ ...billingInfo, phone: e.target.value })}
+            value={shippingInfo.phone}
+            onChange={(e) => setShippingInfo({ ...shippingInfo, phone: e.target.value })}
             required
           />
           <input
             placeholder="Address"
-            value={billingInfo.address}
-            onChange={(e) => setBillingInfo({ ...billingInfo, address: e.target.value })}
+            value={shippingInfo.address}
+            onChange={(e) => setShippingInfo({ ...shippingInfo, address: e.target.value })}
             required
           />
           <div className="grid-3">
             <input
               placeholder="City"
-              value={billingInfo.city}
-              onChange={(e) => setBillingInfo({ ...billingInfo, city: e.target.value })}
-              required
-            />
-            <input
-              placeholder="State"
-              value={billingInfo.state}
-              onChange={(e) => setBillingInfo({ ...billingInfo, state: e.target.value })}
-              required
-            />
-            <input
-              placeholder="ZIP Code"
-              value={billingInfo.zipCode}
-              onChange={(e) => setBillingInfo({ ...billingInfo, zipCode: e.target.value })}
+              value={shippingInfo.city}
+              onChange={(e) => setShippingInfo({ ...shippingInfo, city: e.target.value })}
               required
             />
           </div>
 
           <h2>Payment Information</h2>
           <div className="payment-methods">
+            <label className="payment-method">
+              <input
+                type="radio"
+                name="paymentMethod"
+                value="cod"
+                checked={paymentMethod === 'cod'}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+              />
+              <span>Cash on Delivery (COD)</span>
+            </label>
             <label className="payment-method">
               <input
                 type="radio"
@@ -289,11 +307,11 @@ export default function Checkout() {
               <input
                 type="radio"
                 name="paymentMethod"
-                value="cod"
-                checked={paymentMethod === 'cod'}
+                value="other"
+                checked={paymentMethod === 'other'}
                 onChange={(e) => setPaymentMethod(e.target.value)}
               />
-              <span>Cash on Delivery</span>
+              <span>Other Payment Method</span>
             </label>
           </div>
 
@@ -332,6 +350,14 @@ export default function Checkout() {
           {paymentMethod === 'cod' && (
             <div className="cod-message">
               <p>You will pay cash when your order is delivered.</p>
+              <p>Payment amount: ${finalTotal.toFixed(2)}</p>
+            </div>
+          )}
+
+          {paymentMethod === 'other' && (
+            <div className="other-payment-message">
+              <p>Please contact us for alternative payment methods.</p>
+              <p>We accept bank transfers, PayPal, and other payment options.</p>
               <p>Payment amount: ${finalTotal.toFixed(2)}</p>
             </div>
           )}

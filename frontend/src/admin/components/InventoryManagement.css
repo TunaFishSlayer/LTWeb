@@ -11,7 +11,6 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
-  flex-wrap: wrap;
   gap: 1rem;
 }
 
@@ -30,12 +29,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 0.25rem;
 }
 
 .admin-stat-label {
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   color: #64748b;
-  margin-bottom: 0.25rem;
 }
 
 .admin-stat-value {
@@ -114,7 +113,7 @@
 
 .admin-table-header {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 80px;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 120px;
   background: #f8fafc;
   padding: 1rem;
   font-weight: 600;
@@ -130,7 +129,7 @@
 
 .admin-table-row {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 80px;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 120px;
   padding: 1rem;
   border-bottom: 1px solid #f1f5f9;
   align-items: center;
@@ -160,6 +159,18 @@
   color: #1e293b;
   font-size: 0.9375rem;
   margin-bottom: 0.25rem;
+}
+
+.admin-table-row.editing {
+  background: #fef3c7;
+  border-left: 3px solid #3b82f6;
+}
+
+.editing-indicator {
+  color: #3b82f6;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-left: 0.5rem;
 }
 
 .admin-product-price {
@@ -203,6 +214,12 @@
   font-size: 0.875rem;
 }
 
+.admin-featured {
+  color: #475569;
+  font-size: 0.875rem;
+  text-align: center;
+}
+
 .admin-status-badge {
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
@@ -215,11 +232,21 @@
 .admin-actions {
   display: flex;
   justify-content: center;
+  align-items: center;
+  min-width: 80px;
+}
+
+.admin-action-buttons {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
 }
 
 .admin-edit-btn,
 .admin-save-btn,
-.admin-cancel-btn {
+.admin-cancel-btn,
+.admin-delete-btn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -263,18 +290,21 @@
   transform: none;
 }
 
-.admin-cancel-btn {
+.admin-cancel-btn,
+.admin-delete-btn {
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 
-.admin-cancel-btn:hover {
+.admin-cancel-btn:hover,
+.admin-delete-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
 }
 
-.admin-cancel-btn:disabled {
+.admin-cancel-btn:disabled,
+.admin-delete-btn:disabled {
   background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
   cursor: not-allowed;
   transform: none;

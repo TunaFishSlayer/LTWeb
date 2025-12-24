@@ -5,9 +5,9 @@ import logger from "../utils/logger.js";
 export const createOrder = async (req, res) => {
   try {
     const userId = req.user.userId; 
-    const { items } = req.body;
+    const orderData = req.body;
 
-    const order = await OrderService.createOrder(userId, items);
+    const order = await OrderService.createOrder(userId, orderData);
 
     logger.info(`Order created by user ${userId}`);
 

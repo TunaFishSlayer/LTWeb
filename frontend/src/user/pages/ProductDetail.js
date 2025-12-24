@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Star, ShoppingCart, Lock, Plus, Minus, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, ShoppingCart, Lock, Plus, Minus, ChevronLeft, ChevronRight } from "lucide-react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import CartSidebar from "../components/CartSidebar";
@@ -139,12 +139,6 @@ export default function ProductDetail() {
           Back to Products
         </button>
 
-        {loading && (
-          <div className="loading-state">
-            <p>Loading product...</p>
-          </div>
-        )}
-
         {error && !loading && (
           <div className="not-found">
             <h2>Product Not Found</h2>
@@ -185,10 +179,6 @@ export default function ProductDetail() {
           <div className="product-info-section">
             <div className="product-header">
               <span className="product-brand">{laptop.brand}</span>
-              <div className="product-rating">
-                <Star size={20} fill="#facc15" color="#facc15" />
-                <span>{laptop.rating} ({laptop.reviews} reviews)</span>
-              </div>
             </div>
 
             <h1 className="product-title">{laptop.name}</h1>

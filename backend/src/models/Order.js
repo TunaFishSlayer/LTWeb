@@ -40,7 +40,6 @@ const orderSchema = new mongoose.Schema(
       city: String,
       state: String,
       zipCode: String,
-      country: String
     },
 
     paymentMethod: {
@@ -55,11 +54,21 @@ const orderSchema = new mongoose.Schema(
         enum: ['card', 'cod', 'other']
       },
       details: {
-        cardNumber: String, // Last 4 digits only
+        cardNumber: String, 
         nameOnCard: String
       },
       paidAt: Date,
       amount: Number
+    },
+
+    discountInfo: {
+      code: String,
+      amount: Number,
+      type: {
+        type: String,
+        enum: ['percentage', 'fixed']
+      },
+      value: Number
     },
 
     refundInfo: {
@@ -76,4 +85,18 @@ const orderSchema = new mongoose.Schema(
 );
 
 const Order = mongoose.model('Order', orderSchema);
+
+// Add indexes for better query performance
+orderSchema.index({ user: 1 });
+orderSchema.index({ status: 1 });
+orderSchema.index({ createdAt: -1 });
+orderSchema.index({ totalPrice: 1 });
+orderSchema.index({ totalPrice: -1 });
+orderSchema.index({ 'paymentInfo.paidAt': -1 });
+
+// Compound indexes for common queries
+orderSchema.index({ user: 1, createdAt: -1 });
+orderSchema.index({ user: 1, status: 1 });
+orderSchema.index({ status: 1, createdAt: -1 });
+
 export default Order;

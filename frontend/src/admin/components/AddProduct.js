@@ -20,8 +20,6 @@ export default function AddProduct() {
       graphics: "",
       display: ""
     },
-    rating: 0,
-    reviews: 0,
     inStock: true,
     featured: false,
     stockQuantity: 0,
@@ -110,8 +108,6 @@ export default function AddProduct() {
           graphics: product.specs.graphics,
           display: product.specs.display
         },
-        rating: parseFloat(product.rating) || 0,
-        reviews: parseInt(product.reviews) || 0,
         stock: parseInt(product.stockQuantity) || 0,
         featured: product.featured || false
       };
@@ -149,8 +145,6 @@ export default function AddProduct() {
             graphics: "",
             display: ""
           },
-          rating: 0,
-          reviews: 0,
           inStock: true,
           featured: false,
           stockQuantity: 0,
@@ -181,8 +175,6 @@ export default function AddProduct() {
         graphics: "",
         display: ""
       },
-      rating: 0,
-      reviews: 0,
       inStock: true,
       featured: false,
       stockQuantity: 0,
@@ -278,7 +270,7 @@ export default function AddProduct() {
                   type="text"
                   value={product.specs.processor}
                   onChange={(e) => handleInputChange("specs.processor", e.target.value)}
-                  placeholder="Ví dụ: Intel Core i7-12700H"
+                  placeholder="Intel Core i7-12700H"
                 />
               </div>
 
@@ -288,7 +280,7 @@ export default function AddProduct() {
                   type="text"
                   value={product.specs.ram}
                   onChange={(e) => handleInputChange("specs.ram", e.target.value)}
-                  placeholder="Ví dụ: 16GB"
+                  placeholder="16GB"
                 />
               </div>
 
@@ -298,7 +290,7 @@ export default function AddProduct() {
                   type="text"
                   value={product.specs.storage}
                   onChange={(e) => handleInputChange("specs.storage", e.target.value)}
-                  placeholder="Ví dụ: 512GB SSD"
+                  placeholder="512GB SSD"
                 />
               </div>
 
@@ -308,7 +300,7 @@ export default function AddProduct() {
                   type="text"
                   value={product.specs.graphics}
                   onChange={(e) => handleInputChange("specs.graphics", e.target.value)}
-                  placeholder="Ví dụ: NVIDIA RTX 3070"
+                  placeholder="NVIDIA RTX 3070"
                 />
               </div>
 
@@ -318,7 +310,7 @@ export default function AddProduct() {
                   type="text"
                   value={product.specs.display}
                   onChange={(e) => handleInputChange("specs.display", e.target.value)}
-                  placeholder="Ví dụ: 15.6-inch FHD IPS"
+                  placeholder="15.6-inch FHD IPS"
                 />
               </div>
             </div>

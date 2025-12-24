@@ -58,6 +58,12 @@ export default function TrackOrder() {
           })) || [],
           subtotal: fetchedOrder.totalPrice,
           total: fetchedOrder.totalPrice,
+          // Include customer information
+          customer: {
+            name: fetchedOrder.user?.name || `${fetchedOrder.shippingAddress?.firstName || ''} ${fetchedOrder.shippingAddress?.lastName || ''}`.trim(),
+            email: fetchedOrder.user?.email || fetchedOrder.shippingAddress?.email,
+            phone: fetchedOrder.shippingAddress?.phone || fetchedOrder.user?.phone
+          },
           shippingAddress: fetchedOrder.shippingAddress
         };
 
@@ -236,13 +242,24 @@ export default function TrackOrder() {
           </div>
           
           <div className="shipping-address">
-            <h3>Shipping To</h3>
+            <h3>Customer Information</h3>
+            {order.customer ? (
+              <>
+                <p><strong>Name:</strong> {order.customer.name}</p>
+                <p><strong>Email:</strong> {order.customer.email}</p>
+                <p><strong>Phone:</strong> {order.customer.phone}</p>
+              </>
+            ) : (
+              <p>No customer information available</p>
+            )}
+            
+            <h3>Shipping Address</h3>
             {order.shippingAddress ? (
               <>
                 <p>{order.shippingAddress.firstName} {order.shippingAddress.lastName}</p>
                 <p>{order.shippingAddress.address}</p>
                 <p>{order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.zipCode}</p>
-                <p>{order.shippingAddress.country}</p>
+                
               </>
             ) : (
               <p>No shipping address provided</p>

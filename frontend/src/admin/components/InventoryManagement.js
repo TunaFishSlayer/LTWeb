@@ -169,6 +169,37 @@ export default function InventoryManagement() {
     setEditImagePreview('');
   };
 
+  const handleDelete = async (item) => {
+    if (!window.confirm('Are you sure you want to delete this laptop?')) {
+      return;
+    }
+    
+    try {
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`${API_BASE}/laptops/${item.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || 'Failed to delete laptop');
+      }
+      
+      // Remove from local state
+      setInventory(inventory.filter(i => i.id !== item.id));
+      showNotification("Laptop deleted successfully");
+      toast.success('Laptop deleted successfully');
+    } catch (error) {
+      console.error('Error deleting laptop:', error);
+      toast.error(error.message || 'Failed to delete laptop');
+    }
+  };
+
   const showNotification = (message) => {
     setNotification(message);
     setTimeout(() => setNotification(""), 3000);
@@ -245,11 +276,14 @@ export default function InventoryManagement() {
             const isEditing = editingItem && editingItem.id === item.id;
 
             return (
-              <div key={item.id} className="admin-table-row">
+              <div key={item.id} className={`admin-table-row ${isEditing ? 'editing' : ''}`}>
                 <div className="admin-product-info">
                   <img src={item.image} alt={item.name} className="admin-product-image" />
                   <div>
-                    <div className="admin-product-name">{item.name}</div>
+                    <div className="admin-product-name">
+                      {item.name}
+                      {isEditing && <span className="editing-indicator"> (Editing)</span>}
+                    </div>
                     <div className="admin-product-price">${item.price.toLocaleString()}</div>
                   </div>
                 </div>
@@ -293,6 +327,7 @@ export default function InventoryManagement() {
                         disabled={saving}
                       >
                         <LuSave size={16} />
+                        Save changes
                       </button>
                       <button 
                         onClick={handleCancel} 
@@ -300,12 +335,18 @@ export default function InventoryManagement() {
                         disabled={saving}
                       >
                         <LuX size={16} />
+                        Cancel
                       </button>
                     </div>
                   ) : (
-                    <button onClick={() => handleEdit(item)} className="admin-edit-btn">
-                      <LuPen size={16} />
-                    </button>
+                    <div className="admin-action-buttons">
+                      <button onClick={() => handleEdit(item)} className="admin-edit-btn">
+                        <LuPen size={16} />
+                      </button>
+                      <button onClick={() => handleDelete(item)} className="admin-delete-btn">
+                        <LuX size={16} />
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>

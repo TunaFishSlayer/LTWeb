@@ -177,4 +177,84 @@
   border: 1px solid #e5e7eb;
 }
 
-/* Ensure consistent icon alignment */
+/* Responsive Design */
+@media (max-width: 768px) {
+  .product-card {
+    max-width: 100%;
+    margin: 0 0 1rem 1rem;
+  }
+  
+  .product-image-container {
+    height: 150px;
+  }
+  
+  .product-content {
+    padding: 12px;
+  }
+  
+  .product-title {
+    font-size: 16px;
+    margin: 4px 0 6px;
+  }
+  
+  .product-specs {
+    font-size: 13px;
+  }
+  
+  .product-footer {
+    padding: 12px;
+  }
+  
+  .product-btn {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-card {
+    margin: 0 0 0.75rem 0.75rem;
+  }
+  
+  .product-image-container {
+    height: 100px;
+  }
+  
+  .product-content {
+    padding: 10px;
+  }
+  
+  .product-title {
+    font-size: 15px;
+    margin: 3px 0 4px;
+  }
+  
+  .product-specs {
+    font-size: 12px;
+  }
+  
+  .product-footer {
+    padding: 10px;
+  }
+  
+  .product-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+  
+  .product-badge {
+    top: 6px;
+    left: 6px;
+    font-size: 11px;
+    padding: 1px 6px;
+  }
+  
+  .product-price strong {
+    font-size: 18px;
+  }
+  
+  .product-price del {
+    font-size: 12px;
+  }
+}
+

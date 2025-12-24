@@ -1,5 +1,9 @@
 import Laptop from "../models/Laptop.js";
 
+// Simple cache for frequently accessed data
+const cache = new Map();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
 class LaptopService {
   static async getAllLaptops(queryParams) {
     const { 
@@ -24,15 +28,14 @@ class LaptopService {
 
     let query = {};
 
-    // Search filter
+    // Search filter - optimized for performance
     if (search) {
-      query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { brand: { $regex: search, $options: 'i' } },
-        { 'specs.processor': { $regex: search, $options: 'i' } },
-        { 'specs.ram': { $regex: search, $options: 'i' } },
-        { 'specs.storage': { $regex: search, $options: 'i' } }
-      ];
+      // Use text search with proper indexing
+      query.$text = {
+        $search: search,
+        $caseSensitive: false,
+        $diacriticSensitive: false
+      };
     }
 
     // Brand filter
@@ -57,6 +60,16 @@ class LaptopService {
       query.stock = 0;
     }
 
+    // Generate cache key
+    const cacheKey = JSON.stringify({ page, limit, search, brand, minPrice, maxPrice, featured, sort, inStock });
+    
+    // Check cache first
+    const cached = cache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      console.log('Cache hit for:', cacheKey);
+      return cached.data;
+    }
+    
     // Get total count for pagination
     const totalCount = await Laptop.countDocuments(query);
 
@@ -71,11 +84,19 @@ class LaptopService {
       default: sortObj = { createdAt: -1 };
     }
 
-    // Fetch laptops
+    // Fetch laptops with optimized field selection
     const laptops = await Laptop.find(query)
+      .select('name brand price originalPrice image specs rating reviews stock featured createdAt')
       .sort(sortObj)
       .skip(skip)
-      .limit(limitNum);
+      .limit(limitNum)
+      .lean(); // Use lean() for faster queries
+
+    // Cache the result
+    cache.set(cacheKey, {
+      data: { laptops, pagination: { currentPage: pageNum, totalPages: Math.ceil(totalCount / limitNum), totalItems: totalCount } },
+      timestamp: Date.now()
+    });
 
     return {
       laptops,

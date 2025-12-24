@@ -44,10 +44,22 @@ laptopSchema.index({
   'specs.storage': 'text'
 });
 
+// Additional indexes for better performance
 laptopSchema.index({ brand: 1 });
 laptopSchema.index({ price: 1 });
+laptopSchema.index({ price: -1 });
 laptopSchema.index({ featured: 1 });
 laptopSchema.index({ rating: -1 });
+laptopSchema.index({ createdAt: -1 });
+laptopSchema.index({ stock: 1 });
+laptopSchema.index({ 'specs.processor': 1 });
+laptopSchema.index({ 'specs.ram': 1 });
+laptopSchema.index({ 'specs.storage': 1 });
+
+// Compound indexes for common queries
+laptopSchema.index({ brand: 1, price: 1 });
+laptopSchema.index({ featured: 1, rating: -1 });
+laptopSchema.index({ stock: 1, featured: 1 });
 
 const Laptop = mongoose.model('Laptop', laptopSchema);
 

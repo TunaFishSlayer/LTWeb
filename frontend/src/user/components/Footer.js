@@ -28,17 +28,6 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Cột 3 */}
-          <div className="footer-column">
-            <h4 className="footer-heading">Categories</h4>
-            <ul className="footer-list">
-              <li><Link to="/products?category=gaming">Gaming Laptops</Link></li>
-              <li><Link to="/products?category=business">Business Laptops</Link></li>
-              <li><Link to="/products?category=ultrabooks">Ultrabooks</Link></li>
-              <li><Link to="/products?category=2in1">2-in-1 Laptops</Link></li>
-            </ul>
-          </div>
-
           {/* Cột 4 */}
           <div className="footer-column">
             <h4 className="footer-heading">Contact Info</h4>

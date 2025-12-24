@@ -1,50 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { LuSearch } from "react-icons/lu";
 import ProductCard from "./ProductCard";
+import { useLaptopStore } from "../../lib/laptopStore";
 import "./ProductGrid.css";
 
 export default function ProductGrid() {
-  const [laptops, setLaptops] = useState([]);
-  const [brands, setBrands] = useState(["All"]);
+  const { laptops, brands, loading, error, fetchLaptops } = useLaptopStore();
   const [selectedBrand, setSelectedBrand] = useState("All");
   const [priceRange, setPriceRange] = useState([0, 3000]);
   const [sortBy, setSortBy] = useState("name");
   const [searchTerm, setSearchTerm] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
-  // Fetch laptops from backend API
+  // Fetch laptops on component mount
   useEffect(() => {
-    const fetchLaptops = async () => {
-      try {
-        setLoading(true);
-        setError("");
-
-        // Use CRA proxy: frontend/package.json has "proxy": "http://localhost:5000"
-        const res = await fetch("/api/laptops");
-        const data = await res.json();
-
-        if (!res.ok || !data.success) {
-          throw new Error(data.message || "Failed to load laptops");
-        }
-
-        const laptopList = data.data || [];
-        setLaptops(laptopList);
-
-        // Build brand list from API data
-        const uniqueBrands = Array.from(
-          new Set(laptopList.map((item) => item.brand).filter(Boolean))
-        );
-        setBrands(["All", ...uniqueBrands]);
-      } catch (err) {
-        setError(err.message || "Failed to load laptops");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchLaptops();
-  }, []);
+  }, [fetchLaptops]);
 
   const filteredLaptops = laptops
     .filter((laptop) => {
@@ -61,8 +31,6 @@ export default function ProductGrid() {
           return a.price - b.price;
         case "price-high":
           return b.price - a.price;
-        case "rating":
-          return b.rating - a.rating;
         default:
           return a.name.localeCompare(b.name);
       }
@@ -144,15 +112,8 @@ export default function ProductGrid() {
             <option value="name">Name</option>
             <option value="price-low">Price: Low to High</option>
             <option value="price-high">Price: High to Low</option>
-            <option value="rating">Highest Rated</option>
           </select>
         </div>
-
-        {loading && (
-          <div className="loading-state">
-            <p>Loading laptops...</p>
-          </div>
-        )}
 
         {error && !loading && (
           <div className="error-state">

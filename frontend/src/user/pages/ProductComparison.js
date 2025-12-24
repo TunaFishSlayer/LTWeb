@@ -1,49 +1,26 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, X, Plus, Search } from "lucide-react";
-import { FaStar } from "react-icons/fa";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import CartSidebar from "../components/CartSidebar";
+import { useLaptopStore } from "../../lib/laptopStore";
 import "../styles/ProductComparison.css";
 
 export default function ProductComparison() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [laptops, setLaptops] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const { laptops, loading, error, fetchLaptops } = useLaptopStore();
   const [product1, setProduct1] = useState(null);
   const [product2, setProduct2] = useState(null);
   const [showProductSelector, setShowProductSelector] = useState(false);
   const [selectorTarget, setSelectorTarget] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Fetch laptops from backend API
+  // Fetch laptops using store
   useEffect(() => {
-    const fetchLaptops = async () => {
-      try {
-        setLoading(true);
-        setError("");
-
-        // Use CRA proxy to call backend: GET /api/laptops
-        const res = await fetch("/api/laptops");
-        const data = await res.json();
-
-        if (!res.ok || !data.success) {
-          throw new Error(data.message || "Failed to load laptops");
-        }
-
-        setLaptops(data.data || []);
-      } catch (err) {
-        setError(err.message || "Failed to load laptops");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchLaptops();
-  }, []);
+  }, [fetchLaptops]);
 
   // Sync selected products from URL params once laptops are loaded
   useEffect(() => {
@@ -135,12 +112,6 @@ export default function ProductComparison() {
         </button>
 
         <h1 className="comparison-title">Compare Products</h1>
-
-        {loading && (
-          <div className="loading-state">
-            <p>Loading laptops...</p>
-          </div>
-        )}
 
         {error && !loading && (
           <div className="error-state">
@@ -312,11 +283,6 @@ export default function ProductComparison() {
                       <div className="product-brand-badge">{product.brand}</div>
                       <h4>{product.name}</h4>
                       <p>${product.price.toLocaleString()}</p>
-                      <div className="product-rating">
-                        <FaStar className="star-icon" />
-                        <span>{product.rating}</span>
-                        <span className="review-count">({product.reviews})</span>
-                      </div>
                       <div className="product-specs-preview">
                         <span>{product.specs.processor}</span>
                         <span>{product.specs.ram}</span>

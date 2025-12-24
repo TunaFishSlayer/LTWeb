@@ -3,80 +3,54 @@ import { useNavigate } from "react-router-dom";
 import { ShoppingCart, Lock } from "lucide-react";
 import { useCartStore } from "../../lib/cart";
 import { useAuthStore } from "../../lib/auth";
+import { useDiscountStore } from "../../lib/discount";
 import { toast } from "sonner";
 import "./ProductCard.css";
-
-const API_BASE = '/api';
 
 export default function ProductCard({ laptop }) {
   const { addItem } = useCartStore();
   const { isAuthenticated } = useAuthStore();
+  const { fetchDiscounts, getDiscountForLaptop } = useDiscountStore();
   const navigate = useNavigate();
   const [discount, setDiscount] = useState(null);
   const [finalPrice, setFinalPrice] = useState(laptop.price);
 
-  // Fetch active discounts and calculate final price
+  // Get discount for this laptop and calculate final price
   useEffect(() => {
-    const fetchDiscount = async () => {
-      try {
-        // Fetch active discounts from public endpoint
-        const response = await fetch(`${API_BASE}/discounts/active`);
-        const data = await response.json();
+    const setupDiscount = async () => {
+      // Fetch discounts if needed (cached)
+      await fetchDiscounts();
+      
+      // Get applicable discount for this laptop
+      const applicableDiscount = getDiscountForLaptop(laptop._id || laptop.id);
+      
+      if (applicableDiscount) {
+        setDiscount(applicableDiscount);
         
-        if (data.success && data.data) {
-          const laptopId = laptop._id || laptop.id;
-          
-          // Find applicable discounts for this laptop
-          const applicableDiscounts = data.data.filter(d => {
-            if (d.applicableTo === 'all') {
-              return true;
-            } else if (d.applicableTo === 'specific') {
-              const productIds = d.productIds?.map(p => p._id || p.id || p) || [];
-              return productIds.includes(laptopId);
+        // Calculate final price after discount
+        let discountedPrice = laptop.price;
+        if (applicableDiscount.type === 'percentage') {
+          discountedPrice = laptop.price * (1 - applicableDiscount.value / 100);
+          if (applicableDiscount.maxDiscount > 0) {
+            const maxDiscountAmount = laptop.price * (applicableDiscount.maxDiscount / 100);
+            const discountAmount = laptop.price - discountedPrice;
+            if (discountAmount > maxDiscountAmount) {
+              discountedPrice = laptop.price - maxDiscountAmount;
             }
-            return false;
-          });
-          
-          // Get the latest discount (most recently created/updated)
-          let latestDiscount = null;
-          if (applicableDiscounts.length > 0) {
-            // Sort by createdAt or updatedAt date, fallback to id if no dates available
-            latestDiscount = applicableDiscounts.sort((a, b) => {
-              const dateA = new Date(a.updatedAt || a.createdAt || 0);
-              const dateB = new Date(b.updatedAt || b.createdAt || 0);
-              return dateB - dateA; // Sort descending (newest first)
-            })[0];
           }
-          
-          if (latestDiscount) {
-            setDiscount(latestDiscount);
-            
-            // Calculate final price after discount
-            let discountedPrice = laptop.price;
-            if (latestDiscount.type === 'percentage') {
-              discountedPrice = laptop.price * (1 - latestDiscount.value / 100);
-              if (latestDiscount.maxDiscount > 0) {
-                const maxDiscountAmount = laptop.price * (latestDiscount.maxDiscount / 100);
-                const discountAmount = laptop.price - discountedPrice;
-                if (discountAmount > maxDiscountAmount) {
-                  discountedPrice = laptop.price - maxDiscountAmount;
-                }
-              }
-            } else if (latestDiscount.type === 'fixed') {
-              discountedPrice = Math.max(0, laptop.price - latestDiscount.value);
-            }
-            
-            setFinalPrice(Math.round(discountedPrice * 100) / 100);
-          }
+        } else if (applicableDiscount.type === 'fixed') {
+          discountedPrice = Math.max(0, laptop.price - applicableDiscount.value);
         }
-      } catch (error) {
-        // Silently fail - discounts are optional
-        console.error('Error fetching discounts:', error);
+        
+        setFinalPrice(Math.round(discountedPrice * 100) / 100);
+      } else {
+        setDiscount(null);
+        setFinalPrice(laptop.price);
       }
     };
     
-    fetchDiscount();
-  }, [laptop]);
+    setupDiscount();
+  }, [laptop, fetchDiscounts, getDiscountForLaptop]);
 
   const handleAddToCart = () => {
     if (!isAuthenticated) {
@@ -112,7 +86,7 @@ export default function ProductCard({ laptop }) {
             )}
           </div>
         )}
-        {!laptop.inStock && (
+        {laptop.stock === 0 && (
           <div className="product-badge out">Out of Stock</div>
         )}
       </div>
@@ -147,11 +121,11 @@ export default function ProductCard({ laptop }) {
 
         <button
           onClick={handleAddToCart}
-          disabled={!laptop.inStock}
+          disabled={laptop.stock === 0}
           className={
             !isAuthenticated
               ? "product-btn outline"
-              : laptop.inStock
+              : laptop.stock > 0
               ? "product-btn default"
               : "product-btn disabled"
           }
@@ -163,7 +137,7 @@ export default function ProductCard({ laptop }) {
           ) : (
             <>
               <ShoppingCart size={16} className="icon-l" />{" "}
-              {laptop.inStock ? "Add to Cart" : "Out of Stock"}
+              {laptop.stock > 0 ? "Add to Cart" : "Out of Stock"}
             </>
           )}
         </button>

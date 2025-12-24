@@ -3,7 +3,11 @@ import Laptop from "../models/Laptop.js";
 import mongoose from "mongoose";
 
 class OrderService {
-  static async createOrder(userId, items) {
+  static async createOrder(userId, orderData) {
+    const { items, discountCode, finalAmount, discountInfo, shippingAddress } = orderData;
+    
+    console.log('OrderService received:', { items, discountCode, finalAmount, discountInfo }); // Debug log
+    
     const session = await mongoose.startSession();
     session.startTransaction();
 
@@ -43,12 +47,46 @@ class OrderService {
         await laptop.save({ session });
       }
 
-      // Create order
+      // Use discount info from frontend if provided, otherwise calculate it
+      let finalDiscountInfo = discountInfo;
+      
+      if (!finalDiscountInfo && discountCode) {
+        // For backwards compatibility, calculate discount if not provided by frontend
+        const estimatedTaxAndShipping = 50; // Rough estimate for tax + shipping
+        const expectedFinalAmount = totalPrice + estimatedTaxAndShipping;
+        
+        console.log('Discount check:', { expectedFinalAmount, finalAmount }); // Debug log
+        
+        if (finalAmount && finalAmount < expectedFinalAmount) {
+          const discountAmount = Math.max(0, expectedFinalAmount - finalAmount);
+          finalDiscountInfo = {
+            code: discountCode,
+            amount: discountAmount,
+            type: 'percentage', // Default to percentage, could be enhanced
+            value: Math.round((discountAmount / (totalPrice + estimatedTaxAndShipping)) * 100 * 100) / 100 // Calculate percentage
+          };
+          
+          console.log('Discount calculated:', finalDiscountInfo); // Debug log
+        } else {
+          console.log('No discount calculated - final amount is not less than expected'); // Debug log
+        }
+      } else {
+        console.log('Using discount info from frontend:', finalDiscountInfo); // Debug log
+      }
+
+      // Create order with payment info
       const order = new Order({
         user: userId,
         items: orderItems,
-        totalPrice,
-        status: 'pending'
+        totalPrice: finalAmount || totalPrice, 
+        status: 'pending',
+        shippingAddress,
+        paymentInfo: {
+          method: 'cod', 
+          amount: finalAmount || totalPrice, 
+          paidAt: new Date()
+        },
+        discountInfo: finalDiscountInfo
       });
 
       await order.save({ session });
