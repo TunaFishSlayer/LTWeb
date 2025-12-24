@@ -41,21 +41,11 @@ export const validateLaptopCreate = (req, res, next) => {
     });
   }
 
-  // Validate rating if provided
-  if (req.body.rating !== undefined) {
-    if (typeof req.body.rating !== 'number' || req.body.rating < 0 || req.body.rating > 5) {
-      return res.status(400).json({
-        success: false,
-        message: "Rating must be between 0 and 5"
-      });
-    }
-  }
-
   next();
 };
 
 export const validateLaptopUpdate = (req, res, next) => {
-  const { price, originalPrice, stock, rating } = req.body;
+  const { price, originalPrice, stock} = req.body;
 
   // If prices are being updated, validate them
   if (price !== undefined) {
@@ -91,17 +81,6 @@ export const validateLaptopUpdate = (req, res, next) => {
       message: "Stock must be a non-negative number"
     });
   }
-
-  // Validate rating
-  if (rating !== undefined) {
-    if (typeof rating !== 'number' || rating < 0 || rating > 5) {
-      return res.status(400).json({
-        success: false,
-        message: "Rating must be between 0 and 5"
-      });
-    }
-  }
-
   next();
 };
 

@@ -15,9 +15,6 @@ const laptopSchema = new mongoose.Schema({
     display: { type: String, required: true }
   },
 
-  rating: { type: Number, min: 0, max: 5, default: 0 },
-  reviews: { type: Number, default: 0 },
-
   stock: {
     type: Number,
     required: true,
@@ -26,7 +23,8 @@ const laptopSchema = new mongoose.Schema({
   },
 
   featured: { type: Boolean, default: false }
-}, {
+}, 
+{
   timestamps: true,
   toJSON: { virtuals: true },
   toObject: { virtuals: true }
@@ -47,7 +45,6 @@ laptopSchema.index({
 laptopSchema.index({ brand: 1 });
 laptopSchema.index({ price: 1 });
 laptopSchema.index({ featured: 1 });
-laptopSchema.index({ rating: -1 });
 
 const Laptop = mongoose.model('Laptop', laptopSchema);
 

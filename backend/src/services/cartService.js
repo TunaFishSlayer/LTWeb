@@ -1,4 +1,5 @@
 import Cart from '../models/Cart.js';
+import Laptop from '../models/Laptop.js';
 
 class CartService {
         /**
@@ -6,7 +7,7 @@ class CartService {
      * Assumes a Mongoose Cart model at ../models/Cart with shape:
      * {
      *   user: ObjectId,
-     *   items: [{ product: ObjectId, quantity: Number, price?: Number }],
+     *   items: [{ laptop: ObjectId, quantity: Number, price?: Number }],
      *   ...timestamps
      * }
      */
@@ -17,6 +18,9 @@ class CartService {
      * @returns {Promise<Object>}
      */
     static async createCart(data) {
+        if (!data || !data.user) throw new Error('User id required to create cart');
+        const existing = await Cart.findOne({ user: data.user }).lean();
+        if (existing) return existing;
         const cart = await Cart.create(data);
         return cart.toObject ? cart.toObject() : cart;
     }
@@ -87,17 +91,38 @@ class CartService {
     /**
      * Add an item to a cart (or increment quantity if it exists).
      * @param {string} cartId
-     * @param {{ product: string, quantity: number, price?: number }} item
+     * @param {{ laptop: string, quantity: number, price?: number }} item
      * @returns {Promise<Object>}
      */
     static async addItem(cartId, item) {
-        if (!item || !item.product || typeof item.quantity !== 'number') {
+        if (!item || !item.laptop || typeof item.quantity !== 'number') {
             throw new Error('Invalid item payload');
         }
         if (item.quantity === 0) return this.getCartById(cartId);
+
+        // Check stock availability BEFORE modifying cart
+        const laptop = await laptop.findById(item.laptop);
+        if (!laptop) {
+            throw new Error('laptop not found');
+        }
+
+        // Get current quantity in cart (if exists)
+        const cart = await Cart.findById(cartId);
+        const existingItem = cart?.items.find(i => i.laptop.toString() === item.laptop.toString());
+        const currentQuantity = existingItem ? existingItem.quantity : 0;
+        const newTotalQuantity = currentQuantity + item.quantity;
+
+        // Validate stock availability
+        if (newTotalQuantity > laptop.stock) {
+            throw new Error(`Insufficient stock. Available: ${laptop.stock}, Requested: ${newTotalQuantity}`);
+        }
+        if (newTotalQuantity < 0) {
+            throw new Error('Quantity cannot be negative');
+        }
+
         // Try increment if exists
         const incRes = await Cart.updateOne(
-            { _id: cartId, 'items.product': item.product },
+            { _id: cartId, 'items.laptop': item.laptop },
             { $inc: { 'items.$.quantity': item.quantity } }
         );
 
@@ -109,25 +134,25 @@ class CartService {
         // Remove any items that may have dropped to <= 0
         await Cart.updateOne({ _id: cartId }, { $pull: { items: { quantity: { $lte: 0 } } } });
 
-        return getCartById(cartId);
+    return this.getCartById(cartId);
     }
 
     /**
      * Set exact quantity for an item. Removes item if quantity <= 0.
      * @param {string} cartId
-     * @param {string} productId
+     * @param {string} laptopId
      * @param {number} quantity
      * @returns {Promise<Object>}
      */
-    static async setItemQuantity(cartId, productId, quantity) {
+    static async setItemQuantity(cartId, laptopId, quantity) {
         if (quantity <= 0) {
-            await Cart.updateOne({ _id: cartId }, { $pull: { items: { product: productId } } });
+            await Cart.updateOne({ _id: cartId }, { $pull: { items: { laptop: laptopId } } });
             return this.getCartById(cartId);
         }
 
         // Update existing item
         const upd = await Cart.updateOne(
-            { _id: cartId, 'items.product': productId },
+            { _id: cartId, 'items.laptop': laptopId },
             { $set: { 'items.$.quantity': quantity } }
         );
 
@@ -135,7 +160,7 @@ class CartService {
         if (upd.matchedCount === 0) {
             await Cart.updateOne(
                 { _id: cartId },
-                { $push: { items: { product: productId, quantity } } }
+                { $push: { items: { laptop: laptopId, quantity } } }
             );
         }
 
@@ -145,11 +170,11 @@ class CartService {
     /**
      * Remove an item from a cart.
      * @param {string} cartId
-     * @param {string} productId
+     * @param {string} laptopId
      * @returns {Promise<Object>}
      */
-    static async removeItem(cartId, productId) {
-        await Cart.updateOne({ _id: cartId }, { $pull: { items: { product: productId } } });
+    static async removeItem(cartId, laptopId) {
+        await Cart.updateOne({ _id: cartId }, { $pull: { items: { laptop: laptopId } } });
         return this.getCartById(cartId);
     }
 
