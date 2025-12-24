@@ -92,7 +92,7 @@ class UserService {
     }
 
     static async requestResetPassword(email) {
-        const user = await User.findOne({email}).select('-passwordHash -resetCode -resetCodeExpiry');
+        const user = await User.findOne({email}).select('-passwordHash -resetCode');
         if (!user) {
             return null;
         }
@@ -103,7 +103,7 @@ class UserService {
     }
 
     static async resetPassword(email, code, newPassword) {
-        const user = await User.findOne({email: email, resetCode: code}).select('-passwordHash -resetCode -resetCodeExpiry');
+        const user = await User.findOne({email: email, resetCode: code}).select('-passwordHash');
         if (!user) {
             throw new Error("Invalid reset code");
         }
