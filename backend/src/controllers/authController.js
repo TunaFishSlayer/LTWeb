@@ -69,12 +69,11 @@ export const loginGoogle = async (req, res) => {
     }
 
     // Initialize Google OAuth client
-    const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+    const client = new OAuth2Client();
     
     // Verify the Google token
     const ticket = await client.verifyIdToken({
       idToken: credential,
-      audience: process.env.GOOGLE_CLIENT_ID
     });
     
     // Get user data from Google

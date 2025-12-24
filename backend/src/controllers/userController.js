@@ -23,13 +23,11 @@ export const getProfile = async (req, res) => {
 export const updateUserProfile = async (req, res) => {
   try {
     const userId = req.user.userId; // User updates their own profile
-    const { name, phone, address } = req.body;
+    const { name } = req.body;
     
     // Only allow updating specific fields
     const updateData = {};
     if (name) updateData.name = name;
-    if (phone) updateData.phone = phone;
-    if (address) updateData.address = address;
     
     const user = await UserService.updateUser(userId, updateData);
     

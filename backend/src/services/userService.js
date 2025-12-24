@@ -16,7 +16,7 @@ class UserService {
     }
 
     static async loginLocal({email, password}) {
-        const user = await User.findOne({email});
+        const user = await User.findOne({email}).select('-resetCode -resetCodeExpiry');
         if (!user) {
             throw new Error("Invalid email or password");
         }
@@ -31,7 +31,7 @@ class UserService {
     }
 
     static async loginGoogle({email,name,googleId}) {
-        let user = await User.findOne({$or: [{email}, {googleId}]});
+        let user = await User.findOne({$or: [{email}, {googleId}]}).select('-resetCode -resetCodeExpiry');
         if (!user) {
             user = new User({email, name, googleId, provider: 'google'});
             await user.save();
@@ -40,7 +40,7 @@ class UserService {
     }
 
     static async getUserById(userId) {
-        const user = await User.findById(userId).select('-passwordHash');
+        const user = await User.findById(userId).select('-passwordHash -resetCode -resetCodeExpiry');
         if (!user) {
             throw new Error("User not found");
         }
@@ -48,7 +48,7 @@ class UserService {
     }
 
     static async getUserByEmail(email) {
-        const user = await User.findOne({email}).select('-passwordHash');
+        const user = await User.findOne({email}).select('-passwordHash -resetCode -resetCodeExpiry');
         if (!user) {
             throw new Error("User not found");
         }
@@ -56,12 +56,12 @@ class UserService {
     }
 
     static async getAllUsers() {
-        const users = await User.find().select('-passwordHash');
+        const users = await User.find().select('-passwordHash -resetCode -resetCodeExpiry');
         return users;
     }
 
     static async deleteUser(userId) {
-        const user = await User.findByIdAndDelete(userId);
+        const user = await User.findByIdAndDelete(userId).select('-passwordHash -resetCode -resetCodeExpiry');
         if (!user) {
             throw new Error("User not found");
         }
@@ -69,7 +69,7 @@ class UserService {
     }
 
     static async updateUser(userId, updateData) {
-        const user = await User.findByIdAndUpdate(userId, updateData, {new: true}).select('-passwordHash');
+        const user = await User.findByIdAndUpdate(userId, updateData, {new: true}).select('-passwordHash -resetCode -resetCodeExpiry');
         if (!user) {
             throw new Error("User not found");
         }
@@ -77,7 +77,7 @@ class UserService {
     }
 
     static async updatePassword(userId, oldPassword, newPassword) {
-        const user = await User.findById(userId);
+        const user = await User.findById(userId).select('-resetCode -resetCodeExpiry');
         if(!user) {
             throw new Error("User not found");
         }
@@ -92,7 +92,7 @@ class UserService {
     }
 
     static async requestResetPassword(email) {
-        const user = await User.findOne({email});
+        const user = await User.findOne({email}).select('-passwordHash -resetCode -resetCodeExpiry');
         if (!user) {
             return null;
         }
@@ -103,7 +103,7 @@ class UserService {
     }
 
     static async resetPassword(email, code, newPassword) {
-        const user = await User.findOne({email: email, resetCode: code});
+        const user = await User.findOne({email: email, resetCode: code}).select('-passwordHash -resetCode -resetCodeExpiry');
         if (!user) {
             throw new Error("Invalid reset code");
         }
