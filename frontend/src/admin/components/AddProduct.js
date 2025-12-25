@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import "./AddProduct.css";
 
-const API_BASE = '/api';
+const API_BASE = process.env.REACT_APP_API_URL;
 
 export default function AddProduct() {
   const navigate = useNavigate();

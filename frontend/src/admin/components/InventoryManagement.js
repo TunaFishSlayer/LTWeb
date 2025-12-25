@@ -3,7 +3,7 @@ import { LuSearch, LuPen, LuSave, LuX, LuCircleAlert } from "react-icons/lu";
 import { toast } from 'sonner';
 import "./InventoryManagement.css";
 
-const API_BASE = '/api';
+const API_BASE = process.env.REACT_APP_API_URL;
 
 export default function InventoryManagement() {
   const [inventory, setInventory] = useState([]);
