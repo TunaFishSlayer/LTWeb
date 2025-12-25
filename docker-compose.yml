@@ -3,7 +3,7 @@ services:
     container_name: ltweb-backend
     build:
       context: ./backend
-      dockerfile: ./backend/api.Dockerfile
+      dockerfile: Dockerfile
     ports:
       - "5000:5000"
     env_file:
@@ -16,7 +16,7 @@ services:
     container_name: ltweb-frontend
     build: 
       context: ./frontend
-      dockerfile: ./frontend/fe.Dockerfile
+      dockerfile: Dockerfile
     ports:
       - "3000:80"
     depends_on:
