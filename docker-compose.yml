@@ -1,24 +1,31 @@
 services:
   backend:
-    build: ./backend
+    container_name: ltweb-backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     ports:
       - "5000:5000"
-    environment:
-      - NODE_ENV=production
-      - PORT=5000
-      - MONGO_URI=mongodb+srv://ledongcanhphu_db_user:uK6HjnSrMsjLVeWe@cluster0.taxahyy.mongodb.net/laptopstore?appName=Cluster0
-      - JWT_SECRET=your_house_key
+    env_file:
+      - ./backend/.env
     networks:
       - app-network
+    restart: always
 
   frontend:
-    build: ./frontend
+    container_name: ltweb-frontend
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
     ports:
       - "3000:80"
     depends_on:
       - backend
+    env_file:
+      - ./frontend/.env
     networks:
       - app-network
+    restart: always
 
 networks:
   app-network:
