@@ -5,7 +5,7 @@ import { useCartStore } from '../../lib/cart';
 import { toast } from 'sonner';
 import '../styles/OrderHistory.css';
 
-const API_BASE = '/api';
+const API_BASE = process.env.REACT_APP_API_BASE || '/api';
 
 export default function OrderHistory() {
   const { user } = useAuthStore();
