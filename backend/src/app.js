@@ -1,3 +1,4 @@
+import os from "os";
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
@@ -9,10 +10,21 @@ import requestLogger from "./middlewares/requestLogger.js";
 
 const app = express();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "https://taplop.vercel.app/",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 app.use(requestLogger);
 
+// routes
+app.get("/api/test", (req, res) => {
+  res.json({ message: "CORS working" });
+});
 const swaggerPath = path.join(process.cwd(), "src/docs/swagger.json");
 const swaggerDocument = JSON.parse(fs.readFileSync(swaggerPath, "utf8"));
 
