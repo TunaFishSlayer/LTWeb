@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FaArrowRight, FaShieldAlt, FaTruck, FaHeadphones, FaStar } from "react-icons/fa";
+import { FaArrowRight, FaShieldAlt, FaTruck, FaHeadphones } from "react-icons/fa";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import ProductCard from "../components/ProductCard";
@@ -69,9 +69,6 @@ export default function Home() {
               <button className="btn-outline" onClick={() => navigate('/about')}>Learn More</button>
             </div>
             <div className="hero-stats">
-              <div>
-                <FaStar className="star" /> 4.8/5 Customer  Rating
-              </div>
               <div>
                 <strong>10,000+</strong> Happy Customers
               </div>
