@@ -22,7 +22,7 @@ export default function Home() {
 
         // Use CRA proxy: "proxy": "http://localhost:5000" in frontend/package.json
         // Get only featured laptops, limited to 3 items
-        const res = await fetch("/api/laptops?featured=true&limit=3&sort=rating");
+        const res = await fetch("/api/laptops/featured?limit=3");
         const data = await res.json();
 
         if (!res.ok || !data.success) {
