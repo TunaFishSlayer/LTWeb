@@ -6,7 +6,7 @@ import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import "./Login.css";
 
 
-const API_BASE = "/api";
+const API_BASE = process.env.REACT_APP_API_BASE || '/api';
 
 const apiLogin = async (email, password) => {
   const response = await fetch(`${API_BASE}/auth/login`, {

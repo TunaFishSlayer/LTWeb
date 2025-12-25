@@ -3,7 +3,7 @@ import { LuPlus, LuPen, LuTrash2, LuSave, LuX, LuPercent, LuCalendar } from "rea
 import { toast } from 'sonner';
 import "./DiscountManagement.css";
 
-const API_BASE = '/api';
+const API_BASE = process.env.REACT_APP_API_BASE || '  /api';
 
 export default function DiscountManagement() {
   const [discounts, setDiscounts] = useState([]);

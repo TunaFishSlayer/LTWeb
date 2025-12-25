@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
 const CART_STORAGE_KEY = 'taplop_cart';
-const API_BASE = '/api';
+const API_BASE = process.env.REACT_APP_API_BASE || '/api';
 
 export const useCartStore = create(
   persist(

@@ -7,11 +7,11 @@ import {
   LuPackage,
   LuUsers,
   LuDownload
-} from "react-icons/lu";
+} from "react-icons/lu";  
 import { toast } from 'sonner';
 import "./SalesAnalytics.css";
 
-const API_BASE = '/api';
+const API_BASE = process.env.REACT_APP_API_BASE || '/api';
 
 export default function SalesAnalytics() {
   const [timeRange, setTimeRange] = useState("month");
