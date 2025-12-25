@@ -235,7 +235,6 @@
   }
   
   .features {
-    grid-template-columns: auto auto 1fr;
     gap: 1rem;
   }
   

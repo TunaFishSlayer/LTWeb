@@ -76,6 +76,9 @@ export default function Header() {
             <Link to={getPath('/products')} onClick={() => setMenuOpen(false)}>Products</Link>
             <Link to={getPath('/about')} onClick={() => setMenuOpen(false)}>About Us</Link>
             <Link to={getPath('/contact')} onClick={() => setMenuOpen(false)}>Contact</Link>
+            {isAuthenticated && (
+              <Link to={getPath('/orders')} onClick={() => setMenuOpen(false)}>My Orders</Link>
+            )}
           </nav>
         </div>
     

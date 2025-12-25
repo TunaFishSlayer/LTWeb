@@ -419,11 +419,6 @@ export default function Login() {
             >
               Back to Home
             </button>
-        <div className="demo-info">
-          <p>Demo credentials:</p>
-          <p><strong>User:</strong> Email: test@gmail.com | Password: 123456</p>
-          <p><strong>Admin:</strong> Email: tuongii@gmail.com | Password: 123456</p>
-        </div>
       </div>
     </div>
     </GoogleOAuthProvider>
