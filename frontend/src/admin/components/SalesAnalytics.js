@@ -11,7 +11,7 @@ import {
 import { toast } from 'sonner';
 import "./SalesAnalytics.css";
 
-const API_BASE = process.env.REACT_APP_API_URL;
+const API_BASE = '/api';
 
 export default function SalesAnalytics() {
   const [timeRange, setTimeRange] = useState("month");

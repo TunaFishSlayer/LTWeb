@@ -3,7 +3,7 @@ import { LuMail } from "react-icons/lu";
 import { Link, useNavigate } from "react-router-dom";
 import "../styles/ForgotPass.css";
 
-const API_BASE = process.env.REACT_APP_API_URL;
+const API_BASE = "/api";
 
 const apiForgotPassword = async (email) => {
   const response = await fetch(`${API_BASE}/auth/request-reset-password`, {

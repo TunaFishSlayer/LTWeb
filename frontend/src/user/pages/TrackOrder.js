@@ -4,7 +4,7 @@ import { useAuthStore } from '../../lib/auth';
 import { toast } from 'sonner';
 import '../styles/TrackOrder.css';
 
-const API_BASE=process.env.REACT_APP_API_URL;
+const API_BASE = '/api';
 
 export default function TrackOrder() {
   const { orderId } = useParams();

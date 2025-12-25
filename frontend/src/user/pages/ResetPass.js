@@ -3,7 +3,7 @@ import { LuLock, LuEye, LuEyeClosed } from "react-icons/lu";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import "../styles/ResetPass.css";
 
-const API_BASE = process.env.REACT_APP_API_URL;
+const API_BASE = "/api";
 
 const apiResetPassword = async (email, verificationCode, newPassword) => {
   const response = await fetch(`${API_BASE}/auth/reset-password`, {

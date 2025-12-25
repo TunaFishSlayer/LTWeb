@@ -5,7 +5,7 @@ import { useDiscountStore } from '../../lib/discount';
 import { toast } from 'sonner';
 import '../styles/Checkout.css';
 
-const API_BASE=process.env.REACT_APP_API_URL;
+const API_BASE = '/api';
 
 export default function Checkout() {
   const navigate = useNavigate();

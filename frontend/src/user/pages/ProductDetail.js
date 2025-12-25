@@ -8,7 +8,7 @@ import { useCartStore } from '../../lib/cart';
 import { useAuthStore } from '../../lib/auth';
 import "../styles/ProductDetail.css";
 
-const API_BASE = process.env.REACT_APP_API_URL;
+const API_BASE = '/api';
 
 export default function ProductDetail() {
   const { id } = useParams();
