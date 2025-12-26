@@ -6,42 +6,27 @@ import ProductCard from "../components/ProductCard";
 import CartSidebar from "../components/CartSidebar";
 import "../styles/Home.css";
 import { useNavigate } from "react-router-dom";
+import { useLaptopStore } from "../../lib/laptopStore";
 
 export default function Home() {
   const navigate = useNavigate();
+  const { fetchLaptops, getFeaturedLaptops, loading, error } = useLaptopStore();
   const [featuredLaptops, setFeaturedLaptops] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
-  // Fetch featured laptops from backend API
+  // Fetch all laptops and get featured ones
   useEffect(() => {
-    const fetchFeatured = async () => {
+    const loadFeaturedLaptops = async () => {
       try {
-        setLoading(true);
-        setError("");
-
-        // Use CRA proxy: "proxy": "http://localhost:5000" in frontend/package.json
-        // Get only featured laptops, limited to 3 items
-        const res = await fetch("/api/laptops/featured?limit=3");
-        const data = await res.json();
-
-        if (!res.ok || !data.success) {
-          throw new Error(data.message || "Failed to load featured laptops");
-        }
-
-        setFeaturedLaptops(data.data || []);
+        await fetchLaptops();
+        const featured = getFeaturedLaptops().slice(0, 3); // Limit to 3 items
+        setFeaturedLaptops(featured);
       } catch (err) {
-        setError(err.message || "Failed to load featured laptops");
-      } finally {
-        setLoading(false);
+        console.error("Failed to load featured laptops:", err);
       }
     };
 
-    fetchFeatured().catch(err => {
-      console.error("Failed to fetch featured laptops:", err);
-      setError("Failed to load featured laptops");
-    });
-  }, []);
+    loadFeaturedLaptops();
+  }, [fetchLaptops, getFeaturedLaptops]);
 
   return (
     <div className="home-page">
