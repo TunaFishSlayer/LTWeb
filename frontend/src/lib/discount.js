@@ -74,7 +74,8 @@ export const useDiscountStore = create(
           code: '',
           name: 'No Discount',
           description: 'No discount available',
-          type: 'percentage'
+          type: 'percentage',
+          value: 0
         };
       },
 
