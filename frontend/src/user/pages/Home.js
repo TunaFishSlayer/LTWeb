@@ -37,7 +37,10 @@ export default function Home() {
       }
     };
 
-    fetchFeatured();
+    fetchFeatured().catch(err => {
+      console.error("Failed to fetch featured laptops:", err);
+      setError("Failed to load featured laptops");
+    });
   }, []);
 
   return (
